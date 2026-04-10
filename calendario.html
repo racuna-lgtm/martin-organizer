@@ -219,7 +219,42 @@ function fmt(d){return d.toISOString().split('T')[0];}
 function hoyStr(){return fmt(new Date());}
 function fmtLabel(str){const d=new Date(str+'T12:00:00');return `${DIAS_N[d.getDay()]} ${d.getDate()} de ${MESES_C[d.getMonth()]}`;}
 
-function getEventos(){try{return JSON.parse(localStorage.getItem('martin_eventos'))||eventosEjemplo();}catch{return eventosEjemplo();}}
+function getEventos(){
+  // Eventos propios del calendario
+  let evPropios;
+  try { evPropios = JSON.parse(localStorage.getItem('martin_eventos')) || []; }
+  catch { evPropios = []; }
+  if (evPropios.length === 0) evPropios = eventosEjemplo();
+
+  // Fusionar con pruebas/trabajos/controles de tareas en tiempo real
+  try {
+    const tareas = JSON.parse(localStorage.getItem('martin_tareas')) || [];
+    const colores = {estudio:'var(--blue)',prueba:'var(--red)',bloque:'var(--green)',personal:'var(--purple)',otro:'var(--muted)'};
+    tareas.filter(t => ['prueba','trabajo','control'].includes(t.tipo) && t.fecha && !t.done)
+      .forEach(t => {
+        // Solo agregar si no existe ya un evento vinculado a esta tarea
+        const yaVinculado = evPropios.find(e => String(e.tareaId) === String(t.id));
+        if (!yaVinculado) {
+          const tipoEv = t.tipo === 'prueba' ? 'prueba' : 'estudio';
+          const h1 = t.tipo === 'prueba' ? '08:00' : '16:00';
+          const h2 = t.tipo === 'prueba' ? '10:00' : '18:00';
+          evPropios.push({
+            id: 'tarea-' + t.id,
+            tareaId: t.id,
+            nombre: t.nombre,
+            tipo: tipoEv,
+            fecha: t.fecha,
+            inicio: h1,
+            fin: h2,
+            notas: t.ramo || '',
+            desdeTareas: true
+          });
+        }
+      });
+  } catch(e) { console.error('Error fusionando tareas:', e); }
+
+  return evPropios;
+}
 function saveEventos(ev){localStorage.setItem('martin_eventos',JSON.stringify(ev));}
 
 function eventosEjemplo(){
@@ -239,7 +274,12 @@ function eventosEjemplo(){
 
 let eventos=getEventos();
 
+function recargarEventos() {
+  eventos = getEventos();
+}
+
 function renderCalendario(){
+  recargarEventos();
   const y=viewDate.getFullYear(),m=viewDate.getMonth();
   document.getElementById('mesLabel').textContent=`${MESES[m]} ${y}`;
   const primerDia=new Date(y,m,1);
@@ -274,6 +314,7 @@ function irHoy(){viewDate=new Date();diaSeleccionado=new Date();renderCalendario
 function cambiarVista(v,btn){vista=v;document.querySelectorAll('.vista-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');eventoExpandido=null;renderEventos();}
 
 function renderEventos(){
+  recargarEventos();
   const lista=document.getElementById('eventosLista');
   let evF=[];
   const fechaSel=fmt(diaSeleccionado);
