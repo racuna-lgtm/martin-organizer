@@ -223,8 +223,18 @@ function getEventos(){try{return JSON.parse(localStorage.getItem('martin_eventos
 function saveEventos(ev){localStorage.setItem('martin_eventos',JSON.stringify(ev));}
 
 function eventosEjemplo(){
-  const b=new Date(),d=(delta,h1,h2,n,t,notas)=>{const f=new Date(b);f.setDate(b.getDate()+delta);return{id:Date.now()+Math.random(),nombre:n,tipo:t,fecha:fmt(f),inicio:h1,fin:h2,notas:notas||''};};
-  return [d(0,'16:00','18:00','Estudiar física','estudio','Cap. 4 y 5'),d(0,'19:00','20:00','Lectura Lenguaje','estudio',''),d(1,'10:00','11:30','Prueba de Historia','prueba','Desde independencia hasta 1900'),d(2,'15:00','17:00','Bloque libre matemáticas','bloque',''),d(3,'09:00','10:00','Entrenamiento','personal',''),d(4,'16:00','18:00','Trabajo grupal Lenguaje','estudio','Con Tomás y Camila')];
+  // Solo un evento de bienvenida para no confundir — las pruebas llegan desde Tareas
+  const b=new Date();
+  const f=new Date(b); f.setDate(b.getDate()+1);
+  return [{
+    id: Date.now()+Math.random(),
+    nombre:'¡Agrega tu primera prueba en Tareas!',
+    tipo:'bloque',
+    fecha:fmt(f),
+    inicio:'16:00',
+    fin:'17:00',
+    notas:'Las pruebas que registres en Tareas aparecen aquí automáticamente'
+  }];
 }
 
 let eventos=getEventos();
