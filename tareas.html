@@ -494,9 +494,12 @@
     lista.innerHTML = '';
     filtradas.forEach(t => {
       const div = document.createElement('div');
-      div.className = `task-card ${t.urgencia} ${t.done ? 'done' : ''}`;
+      div.className = `task-card ${urgenciaEfectiva} ${t.done ? 'done' : ''}`;
       div.setAttribute('data-id', t.id);
 
+      // Urgencia automática por días restantes
+      const diasRest = t.fecha ? Math.ceil((new Date(t.fecha+'T12:00:00')-new Date())/(1000*60*60*24)) : 99;
+      const urgenciaEfectiva = t.urgencia==='urgente'||diasRest<=2 ? 'urgente' : t.urgencia==='media'||diasRest<=5 ? 'media' : 'normal';
       const tagClass = { prueba:'tag-prueba', tarea:'tag-tarea', trabajo:'tag-trabajo', control:'tag-control' }[t.tipo] || 'tag-tarea';
       const tagLabel = { prueba:'Prueba', tarea:'Tarea', trabajo:'Trabajo', control:'Control' }[t.tipo] || t.tipo;
       const uColor   = { urgente:'u-alta', media:'u-media', normal:'u-baja' }[t.urgencia] || 'u-baja';
@@ -524,6 +527,7 @@
           </div>
           ${!t.done ? `<div class="task-actions">
             <button class="btn-mini pomo" onclick="iniciarPomo(${t.id})">⏱ Estudiar ahora</button>
+            <button class="btn-mini" onclick="editarTarea(${t.id})">✏️ Editar</button>
             <button class="btn-mini" onclick="eliminar(${t.id})">Eliminar</button>
           </div>` : ''}
         </div>
@@ -583,6 +587,27 @@
   function iniciarPomo(id) {
     localStorage.setItem('martin_pomo_tarea', tareas.find(x=>x.id===id)?.nombre || '');
     window.location = 'pomodoro.html';
+  }
+
+  function editarTarea(id) {
+    const t = tareas.find(x => x.id === id);
+    if (!t) return;
+    const nuevaFecha = prompt(`Editar tarea: "${t.nombre}"\nFecha actual: ${t.fecha||'sin fecha'}\n\nNueva fecha (YYYY-MM-DD):\nEj: ${new Date().toISOString().split('T')[0]}`, t.fecha||'');
+    if (nuevaFecha === null) return;
+    // Validar formato
+    if (nuevaFecha && !/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)) {
+      mostrarNotifDeshacer('Formato inválido. Usa YYYY-MM-DD (ej: 2025-04-18)');
+      return;
+    }
+    t.fecha = nuevaFecha || t.fecha;
+    // También preguntar urgencia
+    const nuevaUrg = prompt(`Urgencia de "${t.nombre}":\n1 = Normal\n2 = Media\n3 = Urgente`, t.urgencia==='urgente'?'3':t.urgencia==='media'?'2':'1');
+    if (nuevaUrg !== null) {
+      t.urgencia = nuevaUrg==='3'?'urgente':nuevaUrg==='2'?'media':'normal';
+    }
+    guardarTareas(tareas);
+    render();
+    mostrarNotifDeshacer(`✅ Tarea actualizada`);
   }
 
   function filtrar(tipo, btn) {
