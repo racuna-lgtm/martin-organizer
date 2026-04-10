@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martín — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0090F8;
+    --blue-soft: #E6F1FB;
+    --blue-mid: #378ADD;
+    --green: #00C896;
+    --green-soft: #E1F5EE;
+    --green-dark: #085041;
+    --amber: #FFB020;
+    --amber-soft: #FAEEDA;
+    --amber-dark: #633806;
+    --red: #FF4D4D;
+    --red-soft: #FCEBEB;
+    --bg: #F5F7FA;
+    --white: #FFFFFF;
+    --text: #2A2A2A;
+    --muted: #8890A0;
+    --border: #E2E5EC;
+    --surface: #EDEEF5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100dvh;
+    padding-bottom: 90px;
+    color: var(--text);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .header-left { display: flex; flex-direction: column; }
+  .header-left .day {
+    font-size: 12px; color: var(--muted); font-weight: 400; text-transform: capitalize;
+  }
+  .header-left .greeting-h {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px;
+  }
+  .avatar-sm {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--blue-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; color: var(--blue);
+    cursor: pointer;
+  }
+
+  /* ── VOZ BUTTON ── */
+  .voz-bar {
+    padding: 1rem 1.25rem 0.5rem;
+  }
+  .voz-btn {
+    width: 100%;
+    background: var(--blue);
+    border: none; border-radius: 16px;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    animation: fadeIn 0.4s ease both;
+  }
+  .voz-btn:hover { background: var(--blue-mid); }
+  .voz-btn:active { transform: scale(0.98); }
+  .voz-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .voz-icon svg { width: 18px; height: 18px; fill: white; }
+  .voz-texts { text-align: left; }
+  .voz-texts strong {
+    display: block; font-size: 14px; font-weight: 500; color: white;
+  }
+  .voz-texts span {
+    font-size: 12px; color: rgba(255,255,255,0.75); font-weight: 300;
+  }
+  .voz-btn.listening {
+    background: var(--green);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,200,150,0.4); }
+    50%      { box-shadow: 0 0 0 10px rgba(0,200,150,0); }
+  }
+
+  /* Transcript box */
+  .transcript-box {
+    margin: 0 1.25rem 0.5rem;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 14px; color: var(--text);
+    min-height: 44px;
+    display: none;
+  }
+  .transcript-box.visible { display: block; }
+
+  /* ── SECCIÓN ── */
+  section { padding: 1rem 1.25rem 0; }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--muted); letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 0.75rem;
+  }
+
+  /* ── TARJETAS MÉTRICAS ── */
+  .metrics {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .metric-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex; flex-direction: column; gap: 6px;
+    animation: fadeIn 0.4s ease both;
+  }
+  .metric-card .label {
+    font-size: 12px; color: var(--muted); font-weight: 400;
+  }
+  .metric-card .value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -1px;
+  }
+  .metric-card .sub {
+    font-size: 12px; color: var(--muted); font-weight: 300;
+  }
+  .metric-card .badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 20px;
+    width: fit-content;
+  }
+  .badge-green { background: var(--green-soft); color: var(--green-dark); }
+  .badge-amber { background: var(--amber-soft); color: var(--amber-dark); }
+  .badge-blue  { background: var(--blue-soft);  color: var(--blue-mid); }
+
+  /* ── TAREAS HOY ── */
+  .task-list { display: flex; flex-direction: column; gap: 8px; }
+  .task-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.875rem 1rem;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    animation: fadeIn 0.4s ease both;
+  }
+  .task-item:hover { border-color: var(--blue); }
+  .task-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .task-item.done .task-check {
+    background: var(--green); border-color: var(--green);
+  }
+  .task-item.done .task-check::after {
+    content: ''; display: block;
+    width: 6px; height: 10px;
+    border: 2px solid white; border-top: none; border-left: none;
+    transform: rotate(45deg) translate(-1px,-1px);
+  }
+  .task-item.done .task-name { text-decoration: line-through; color: var(--muted); }
+  .task-body { flex: 1; min-width: 0; }
+  .task-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .task-meta { font-size: 12px; color: var(--muted); margin-top: 2px; font-weight: 300; }
+  .task-tag {
+    font-size: 11px; font-weight: 500; padding: 2px 8px;
+    border-radius: 20px; flex-shrink: 0;
+  }
+  .tag-prueba { background: var(--red-soft); color: #A32D2D; }
+  .tag-tarea  { background: var(--blue-soft); color: var(--blue-mid); }
+  .tag-trabajo { background: var(--amber-soft); color: var(--amber-dark); }
+
+  /* ── RAMOS SEMÁFORO ── */
+  .ramos-list { display: flex; flex-direction: column; gap: 8px; }
+  .ramo-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.875rem 1rem;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; transition: all 0.15s ease;
+    animation: fadeIn 0.4s ease both;
+  }
+  .ramo-item:hover { border-color: var(--blue); }
+  .semaforo {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .s-green  { background: var(--green); }
+  .s-amber  { background: var(--amber); }
+  .s-red    { background: var(--red); }
+  .ramo-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .ramo-nota {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
+  }
+  .nota-green { color: var(--green); }
+  .nota-amber { color: var(--amber); }
+  .nota-red   { color: var(--red); }
+  .ramo-trend { font-size: 13px; margin-left: 4px; }
+
+  /* ── POMODORO RÁPIDO ── */
+  .pomo-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; transition: all 0.15s ease;
+    animation: fadeIn 0.4s ease both;
+  }
+  .pomo-card:hover { border-color: var(--blue); }
+  .pomo-left { display: flex; flex-direction: column; gap: 2px; }
+  .pomo-label { font-size: 12px; color: var(--muted); font-weight: 400; }
+  .pomo-time {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -1px;
+  }
+  .pomo-sub { font-size: 12px; color: var(--muted); font-weight: 300; }
+  .pomo-btn {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--blue); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .pomo-btn:hover { background: var(--blue-mid); transform: scale(1.05); }
+  .pomo-btn svg { width: 20px; height: 20px; fill: white; margin-left: 2px; }
+
+  /* ── RACHA ── */
+  .racha-card {
+    background: linear-gradient(135deg, #0090F8 0%, #0060C0 100%);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    animation: fadeIn 0.4s ease both;
+  }
+  .racha-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 40px; font-weight: 800; color: white; letter-spacing: -2px;
+    flex-shrink: 0;
+  }
+  .racha-texts strong { display: block; font-size: 14px; font-weight: 500; color: white; }
+  .racha-texts span { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 300; }
+  .racha-emoji { font-size: 28px; margin-left: auto; }
+
+  /* ── NAV BOTTOM ── */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around;
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+    z-index: 10;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 16px; border-radius: 12px;
+    cursor: pointer; transition: all 0.15s ease;
+    text-decoration: none;
+    border: none; background: transparent;
+  }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item span { font-size: 10px; font-weight: 500; color: var(--muted); }
+  .nav-item.active span { color: var(--blue); }
+  .nav-item.active svg { stroke: var(--blue); }
+  .nav-item:not(.active) svg { stroke: var(--muted); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <span class="day" id="fechaHoy"></span>
+    <span class="greeting-h" id="saludoHora"></span>
+  </div>
+  <div class="avatar-sm" onclick="window.location='index.html'">M</div>
+</header>
+
+<!-- BOTÓN VOZ -->
+<div class="voz-bar">
+  <button class="voz-btn" id="vozBtn" onclick="toggleVoz()">
+    <div class="voz-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-6 8a7 7 0 0 0 14 0h-2a5 5 0 0 1-10 0H5zm7 9v-2h-2v2H8v2h8v-2h-2z"/></svg>
+    </div>
+    <div class="voz-texts">
+      <strong id="vozLabel">Habla con Martín Organizer</strong>
+      <span id="vozSub">Di "prueba de historia el jueves" o "bloquea 2 horas para estudiar"</span>
+    </div>
+  </button>
+</div>
+
+<!-- TRANSCRIPT -->
+<div class="transcript-box" id="transcriptBox"></div>
+
+<!-- MÉTRICAS -->
+<section>
+  <div class="section-title">Resumen de hoy</div>
+  <div class="metrics">
+    <div class="metric-card">
+      <span class="label">Tareas pendientes</span>
+      <span class="value" id="cntPendientes">3</span>
+      <span class="badge badge-amber">Para hoy</span>
+    </div>
+    <div class="metric-card">
+      <span class="label">Próxima prueba</span>
+      <span class="value" style="font-size:18px;margin-top:4px" id="proximaPrueba">Jue</span>
+      <span class="sub" id="proximaPruebaRamo">Historia</span>
+    </div>
+    <div class="metric-card">
+      <span class="label">Pomodoros hoy</span>
+      <span class="value" id="cntPomodoros">2</span>
+      <span class="badge badge-green">+1 ayer</span>
+    </div>
+    <div class="metric-card">
+      <span class="label">Promedio general</span>
+      <span class="value" id="promedioGeneral">5.8</span>
+      <span class="badge badge-blue">↑ esta semana</span>
+    </div>
+  </div>
+</section>
+
+<!-- TAREAS HOY -->
+<section>
+  <div class="section-title">Tareas de hoy</div>
+  <div class="task-list" id="taskList">
+    <div class="task-item" onclick="toggleTask(this)">
+      <div class="task-check"></div>
+      <div class="task-body">
+        <div class="task-name">Estudiar materia de electromagnetismo</div>
+        <div class="task-meta">Física · Para hoy</div>
+      </div>
+      <span class="task-tag tag-tarea">Tarea</span>
+    </div>
+    <div class="task-item" onclick="toggleTask(this)">
+      <div class="task-check"></div>
+      <div class="task-body">
+        <div class="task-name">Prueba de Historia de Chile</div>
+        <div class="task-meta">Historia · Jueves 10:00</div>
+      </div>
+      <span class="task-tag tag-prueba">Prueba</span>
+    </div>
+    <div class="task-item" onclick="toggleTask(this)">
+      <div class="task-check"></div>
+      <div class="task-body">
+        <div class="task-name">Trabajo grupal de Lenguaje</div>
+        <div class="task-meta">Lenguaje · Viernes · Con Tomás y Cami</div>
+      </div>
+      <span class="task-tag tag-trabajo">Trabajo</span>
+    </div>
+  </div>
+</section>
+
+<!-- RAMOS SEMÁFORO -->
+<section>
+  <div class="section-title">Mis ramos</div>
+  <div class="ramos-list">
+    <div class="ramo-item">
+      <div class="semaforo s-green"></div>
+      <span class="ramo-name">Matemáticas</span>
+      <span class="ramo-nota nota-green">6.2</span>
+      <span class="ramo-trend">↑</span>
+    </div>
+    <div class="ramo-item">
+      <div class="semaforo s-green"></div>
+      <span class="ramo-name">Historia</span>
+      <span class="ramo-nota nota-green">5.8</span>
+      <span class="ramo-trend">→</span>
+    </div>
+    <div class="ramo-item">
+      <div class="semaforo s-amber"></div>
+      <span class="ramo-name">Lenguaje</span>
+      <span class="ramo-nota nota-amber">5.1</span>
+      <span class="ramo-trend">↓</span>
+    </div>
+    <div class="ramo-item">
+      <div class="semaforo s-red"></div>
+      <span class="ramo-name">Física</span>
+      <span class="ramo-nota nota-red">4.2</span>
+      <span class="ramo-trend">↓</span>
+    </div>
+  </div>
+</section>
+
+<!-- POMODORO RÁPIDO -->
+<section>
+  <div class="section-title">Pomodoro</div>
+  <div class="pomo-card" onclick="window.location='pomodoro.html'">
+    <div class="pomo-left">
+      <span class="pomo-label">Tiempo de enfoque</span>
+      <span class="pomo-time" id="pomoDisplay">25:00</span>
+      <span class="pomo-sub" id="pomoSub">Listo para empezar</span>
+    </div>
+    <button class="pomo-btn" id="pomoBtnMain" onclick="event.stopPropagation(); togglePomo()">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- RACHA -->
+<section style="padding-bottom:1rem">
+  <div class="section-title">Tu racha</div>
+  <div class="racha-card">
+    <span class="racha-num" id="rachaNum">5</span>
+    <div class="racha-texts">
+      <strong>días seguidos organizándote</strong>
+      <span>¡Sigue así, vas muy bien!</span>
+    </div>
+    <span class="racha-emoji">🔥</span>
+  </div>
+</section>
+
+<!-- NAV BOTTOM -->
+<nav>
+  <button class="nav-item active" onclick="window.location='dashboard.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    <span>Inicio</span>
+  </button>
+  <button class="nav-item" onclick="window.location='tareas.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 11 12 14 22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+    <span>Tareas</span>
+  </button>
+  <button class="nav-item" onclick="window.location='calendario.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    <span>Calendario</span>
+  </button>
+  <button class="nav-item" onclick="window.location='pomodoro.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <span>Pomodoro</span>
+  </button>
+  <button class="nav-item" onclick="window.location='notas.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span>Notas</span>
+  </button>
+</nav>
+
+<script>
+  // Fecha y saludo dinámico
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const ahora = new Date();
+  const hora = ahora.getHours();
+  document.getElementById('fechaHoy').textContent =
+    `${dias[ahora.getDay()]} ${ahora.getDate()} de ${meses[ahora.getMonth()]}`;
+  document.getElementById('saludoHora').textContent =
+    hora < 12 ? 'Buenos días, Martín ☀️' :
+    hora < 19 ? 'Buenas tardes, Martín 👊' :
+                'Buenas noches, Martín 🌙';
+
+  // Toggle tarea completada
+  function toggleTask(el) {
+    el.classList.toggle('done');
+    actualizarContador();
+  }
+  function actualizarContador() {
+    const total = document.querySelectorAll('.task-item').length;
+    const hechas = document.querySelectorAll('.task-item.done').length;
+    document.getElementById('cntPendientes').textContent = total - hechas;
+  }
+
+  // Pomodoro rápido en dashboard
+  let pomoInterval = null;
+  let pomoSeconds = 25 * 60;
+  let pomoRunning = false;
+
+  function togglePomo() {
+    if (!pomoRunning) {
+      pomoRunning = true;
+      document.getElementById('pomoSub').textContent = 'Enfocado 🎯';
+      document.getElementById('pomoBtnMain').innerHTML =
+        '<svg viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+      pomoInterval = setInterval(() => {
+        pomoSeconds--;
+        if (pomoSeconds <= 0) {
+          clearInterval(pomoInterval);
+          pomoRunning = false;
+          pomoSeconds = 25 * 60;
+          document.getElementById('pomoDisplay').textContent = '25:00';
+          document.getElementById('pomoSub').textContent = '¡Tiempo! Descansa 5 min 🎉';
+          document.getElementById('pomoBtnMain').innerHTML =
+            '<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+          const cnt = parseInt(document.getElementById('cntPomodoros').textContent);
+          document.getElementById('cntPomodoros').textContent = cnt + 1;
+        }
+        const m = String(Math.floor(pomoSeconds / 60)).padStart(2, '0');
+        const s = String(pomoSeconds % 60).padStart(2, '0');
+        document.getElementById('pomoDisplay').textContent = m + ':' + s;
+      }, 1000);
+    } else {
+      clearInterval(pomoInterval);
+      pomoRunning = false;
+      document.getElementById('pomoSub').textContent = 'Pausado';
+      document.getElementById('pomoBtnMain').innerHTML =
+        '<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+    }
+  }
+
+  // VOZ
+  let recognition = null;
+  let vozActiva = false;
+
+  function toggleVoz() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Safari.');
+      return;
+    }
+    if (vozActiva) {
+      recognition && recognition.stop();
+      return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'es-CL';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      vozActiva = true;
+      document.getElementById('vozBtn').classList.add('listening');
+      document.getElementById('vozLabel').textContent = 'Escuchando...';
+      document.getElementById('vozSub').textContent = 'Habla ahora';
+      document.getElementById('transcriptBox').classList.add('visible');
+      document.getElementById('transcriptBox').textContent = '...';
+    };
+
+    recognition.onresult = (e) => {
+      const txt = Array.from(e.results).map(r => r[0].transcript).join('');
+      document.getElementById('transcriptBox').textContent = txt;
+    };
+
+    recognition.onend = () => {
+      vozActiva = false;
+      document.getElementById('vozBtn').classList.remove('listening');
+      document.getElementById('vozLabel').textContent = 'Habla con Martín Organizer';
+      document.getElementById('vozSub').textContent = 'Di "prueba de historia el jueves" o "bloquea 2 horas para estudiar"';
+      const txt = document.getElementById('transcriptBox').textContent;
+      if (txt && txt !== '...') procesarVoz(txt);
+    };
+
+    recognition.onerror = () => {
+      vozActiva = false;
+      document.getElementById('vozBtn').classList.remove('listening');
+      document.getElementById('vozLabel').textContent = 'Habla con Martín Organizer';
+      document.getElementById('vozSub').textContent = 'Hubo un error, intenta de nuevo';
+    };
+
+    recognition.start();
+  }
+
+  function procesarVoz(texto) {
+    const t = texto.toLowerCase();
+    let respuesta = '';
+
+    if (t.includes('prueba') || t.includes('examen') || t.includes('certamen')) {
+      const ramo = extraerRamo(t);
+      const dia = extraerDia(t);
+      agregarTarea(texto, ramo, dia, 'Prueba');
+      respuesta = `✅ Prueba de ${ramo} anotada para el ${dia}`;
+    } else if (t.includes('tarea') || t.includes('trabajo')) {
+      const ramo = extraerRamo(t);
+      agregarTarea(texto, ramo, 'próximamente', 'Tarea');
+      respuesta = `✅ Tarea de ${ramo} registrada`;
+    } else if (t.includes('bloquea') || t.includes('reserva') || t.includes('estudiar')) {
+      respuesta = `📅 Bloqueo de tiempo registrado — ve al calendario para confirmar`;
+    } else if (t.includes('pomodoro') || t.includes('enfoca') || t.includes('timer')) {
+      togglePomo();
+      respuesta = `⏱ Pomodoro iniciado — 25 minutos de enfoque`;
+    } else {
+      respuesta = `Entendí: "${texto}" — ¿Quieres agregar esto como tarea?`;
+    }
+
+    document.getElementById('transcriptBox').textContent = respuesta;
+    setTimeout(() => {
+      document.getElementById('transcriptBox').classList.remove('visible');
+    }, 4000);
+  }
+
+  function extraerRamo(t) {
+    const ramos = ['física','matemáticas','matemática','historia','lenguaje','inglés','química','biología','filosofía','educación física'];
+    return ramos.find(r => t.includes(r)) || 'ramo';
+  }
+
+  function extraerDia(t) {
+    const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+    return dias.find(d => t.includes(d)) || 'próximamente';
+  }
+
+  function agregarTarea(nombre, ramo, dia, tipo) {
+    const list = document.getElementById('taskList');
+    const tagClass = tipo === 'Prueba' ? 'tag-prueba' : tipo === 'Tarea' ? 'tag-tarea' : 'tag-trabajo';
+    const div = document.createElement('div');
+    div.className = 'task-item';
+    div.onclick = function(){ toggleTask(this); };
+    div.innerHTML = `
+      <div class="task-check"></div>
+      <div class="task-body">
+        <div class="task-name">${nombre}</div>
+        <div class="task-meta">${ramo.charAt(0).toUpperCase()+ramo.slice(1)} · ${dia}</div>
+      </div>
+      <span class="task-tag ${tagClass}">${tipo}</span>
+    `;
+    list.appendChild(div);
+    actualizarContador();
+  }
+</script>
+</body>
+</html>
