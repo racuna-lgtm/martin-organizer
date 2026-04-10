@@ -213,25 +213,46 @@ function getTareas() { try { return JSON.parse(localStorage.getItem('martin_tare
 function renderTareas() {
   const tareas = getTareas();
   const hoy = hoyStr();
-  const pendientes = tareas.filter(t=>!t.done && t.fecha<=hoy).sort((a,b)=>{
-    const u={urgente:0,media:1,normal:2};
-    return (u[a.urgencia]||2)-(u[b.urgencia]||2);
+  const urgOrd = {urgente:0,media:1,normal:2};
+  // Mostrar todas las pendientes (no solo hoy), ordenadas por urgencia y fecha
+  const pendientes = tareas.filter(t=>!t.done).sort((a,b)=>{
+    const uDiff=(urgOrd[a.urgencia]||2)-(urgOrd[b.urgencia]||2);
+    if(uDiff!==0) return uDiff;
+    return (a.fecha||'').localeCompare(b.fecha||'');
   });
   const list = document.getElementById('taskList');
   document.getElementById('cntPendientes').textContent = pendientes.length;
-  if (!pendientes.length) { list.innerHTML=`<div class="empty-msg">¡Sin tareas pendientes para hoy! 🎉</div>`; return; }
+  if (!pendientes.length) { list.innerHTML=`<div class="empty-msg">¡Sin tareas pendientes! 🎉</div>`; return; }
   const tagC={prueba:'tag-prueba',tarea:'tag-tarea',trabajo:'tag-trabajo',control:'tag-control'};
   const tagL={prueba:'Prueba',tarea:'Tarea',trabajo:'Trabajo',control:'Control'};
-  list.innerHTML = pendientes.slice(0,4).map(t=>`
+  const DIAS_C=['dom','lun','mar','mié','jue','vie','sáb'];
+  const MES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const etiqDia = f=>{
+    if(!f) return '';
+    if(f<hoy) return '⚠ Vencida';
+    if(f===hoy) return 'Hoy';
+    const d=new Date(f+'T12:00:00');
+    return `${DIAS_C[d.getDay()]} ${d.getDate()} ${MES_C[d.getMonth()]}`;
+  };
+  // Urgencia automática por fecha
+  const urgAuto = t=>{
+    if(t.urgencia==='urgente') return t.urgencia;
+    if(!t.fecha) return 'normal';
+    const diff=Math.ceil((new Date(t.fecha+'T12:00:00')-new Date())/(1000*60*60*24));
+    if(diff<=2) return 'urgente';
+    if(diff<=5) return 'media';
+    return 'normal';
+  };
+  list.innerHTML = pendientes.slice(0,5).map(t=>`
     <div class="task-item" onclick="this.classList.toggle('done')">
       <div class="task-check"></div>
       <div class="task-body">
         <div class="task-name">${t.nombre}</div>
-        <div class="task-meta">${t.ramo} · ${t.urgencia==='urgente'?'⚠ Urgente':t.fecha===hoy?'Para hoy':'Pendiente'}</div>
+        <div class="task-meta">${t.ramo} · ${urgAuto(t)==='urgente'?'⚠ Urgente · ':''}${etiqDia(t.fecha)}</div>
       </div>
       <span class="task-tag ${tagC[t.tipo]||'tag-tarea'}">${tagL[t.tipo]||t.tipo}</span>
     </div>`).join('');
-  if (pendientes.length>4) list.innerHTML+=`<div class="ver-mas" onclick="window.location='tareas.html'">Ver ${pendientes.length-4} más →</div>`;
+  if (pendientes.length>5) list.innerHTML+=`<div class="ver-mas" onclick="window.location='tareas.html'">Ver ${pendientes.length-5} más en Tareas →</div>`;
 
   // Próxima prueba real
   const pruebas = tareas.filter(t=>!t.done&&t.tipo==='prueba'&&t.fecha>=hoy).sort((a,b)=>a.fecha.localeCompare(b.fecha));
