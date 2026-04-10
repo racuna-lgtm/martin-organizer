@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-      --blue:#0090F8; --blue-soft:#0D2A45; --blue-mid:#378ADD;
+    --blue:#0090F8; --blue-soft:#0D2A45; --blue-mid:#378ADD;
     --green:#00C896; --green-soft:#0A2E24; --green-dark:#5DCAA5;
     --amber:#FFB020; --amber-soft:#2E2000; --amber-dark:#FFB020;
     --red:#FF5555; --red-soft:#2E0A0A; --red-dark:#FF8080;
@@ -17,146 +17,283 @@
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { font-family:'DM Sans',sans-serif; background:var(--bg); min-height:100dvh; padding-bottom:90px; color:var(--text); }
+
+  /* HEADER */
   header { background:var(--white); border-bottom:1px solid var(--border); padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
-  .header-left { display:flex; flex-direction:column; }
-  .day { font-size:12px; color:var(--muted); font-weight:400; }
+  .day { font-size:12px; color:var(--muted); }
   .greeting-h { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:var(--text); letter-spacing:-0.3px; }
-  .avatar-sm { width:38px; height:38px; border-radius:50%; background:var(--blue-soft); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:15px; font-weight:800; color:var(--blue); cursor:pointer; }
+  .avatar-sm { width:38px; height:38px; border-radius:50%; background:var(--blue-soft); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:15px; font-weight:800; color:var(--blue); cursor:pointer; border:2px solid var(--blue); }
+
+  /* VOZ */
   .voz-bar { padding:1rem 1.25rem 0.5rem; }
   .voz-btn { width:100%; background:var(--blue); border:none; border-radius:16px; padding:1rem 1.25rem; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
-  .voz-btn:hover { background:var(--blue-mid); } .voz-btn:active { transform:scale(0.98); }
+  .voz-btn:active { transform:scale(0.98); }
   .voz-icon { width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .voz-icon svg { width:18px; height:18px; fill:white; }
-  .voz-texts { text-align:left; }
   .voz-texts strong { display:block; font-size:14px; font-weight:500; color:white; }
   .voz-texts span { font-size:12px; color:rgba(255,255,255,0.75); font-weight:300; }
   .voz-btn.listening { background:var(--green); animation:pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,0.4)} 50%{box-shadow:0 0 0 10px rgba(0,200,150,0)} }
-  .transcript-box { margin:0 1.25rem 0.5rem; background:var(--white); border:1px solid var(--border); border-radius:12px; padding:0.75rem 1rem; font-size:14px; color:var(--text); display:none; }
+  .transcript-box { margin:0 1.25rem 0.5rem; background:var(--white); border:1px solid var(--border); border-radius:12px; padding:0.75rem 1rem; font-size:14px; display:none; }
   .transcript-box.visible { display:block; }
+
+  /* PARTIDO U */
+  .partido-banner { margin:0 1.25rem 0.5rem; background:var(--surface); border:1px solid #1E3A5F; border-radius:16px; padding:1rem 1.25rem; display:none; animation:fadeIn 0.4s ease both; }
+  .partido-banner.visible { display:flex; align-items:center; gap:12px; }
+  .u-badge { width:40px; height:40px; border-radius:10px; background:#0D1B4B; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .u-badge svg { width:24px; height:24px; }
+  .partido-info { flex:1; min-width:0; }
+  .partido-label { font-size:10px; color:var(--blue); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .partido-nombre { font-size:14px; font-weight:600; color:var(--text); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .partido-hora { font-size:12px; color:var(--muted); margin-top:1px; }
+  .partido-tag { background:#EF4444; border-radius:20px; padding:4px 10px; font-size:11px; font-weight:700; color:white; flex-shrink:0; }
+  .partido-tag.pronto { background:var(--blue-soft); color:var(--blue); }
+
+  /* SECCIÓN */
   section { padding:1rem 1.25rem 0; }
-  .section-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--muted); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:0.75rem; }
-  .metrics { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .metric-card { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:1rem; display:flex; flex-direction:column; gap:6px; animation:fadeIn 0.4s ease both; }
-  .metric-card .label { font-size:12px; color:var(--muted); }
-  .metric-card .value { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--text); letter-spacing:-1px; }
-  .metric-card .sub { font-size:12px; color:var(--muted); font-weight:300; }
-  .badge { display:inline-flex; align-items:center; font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; width:fit-content; }
-  .badge-green { background:var(--green-soft); color:var(--green-dark); }
-  .badge-amber { background:var(--amber-soft); color:var(--amber-dark); }
-  .badge-blue  { background:var(--blue-soft); color:var(--blue-mid); }
-  .badge-red   { background:var(--red-soft); color:#A32D2D; }
-  .task-list { display:flex; flex-direction:column; gap:8px; }
-  .task-item { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:0.875rem 1rem; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; animation:fadeIn 0.4s ease both; }
-  .task-item:hover { border-color:var(--blue); }
-  .task-check { width:20px; height:20px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-  .task-item.done .task-check { background:var(--green); border-color:var(--green); }
-  .task-item.done .task-check::after { content:''; display:block; width:6px; height:10px; border:2px solid white; border-top:none; border-left:none; transform:rotate(45deg) translate(-1px,-1px); }
-  .task-item.done .task-name { text-decoration:line-through; color:var(--muted); }
-  .task-body { flex:1; min-width:0; }
-  .task-name { font-size:14px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .task-meta { font-size:12px; color:var(--muted); margin-top:2px; font-weight:300; }
-  .task-tag { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; flex-shrink:0; }
-  .tag-prueba  { background:var(--red-soft); color:#A32D2D; }
-  .tag-tarea   { background:var(--blue-soft); color:var(--blue-mid); }
-  .tag-trabajo { background:var(--amber-soft); color:var(--amber-dark); }
-  .tag-control { background:var(--green-soft); color:var(--green-dark); }
-  .empty-msg { text-align:center; padding:1.5rem; color:var(--muted); font-size:13px; }
-  .ver-mas { text-align:center; padding:0.75rem; color:var(--blue); font-size:13px; font-weight:500; cursor:pointer; }
-  .ramos-list { display:flex; flex-direction:column; gap:8px; }
-  .ramo-item { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:0.875rem 1rem; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
-  .ramo-item:hover { border-color:var(--blue); }
-  .semaforo { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-  .s-green { background:var(--green); } .s-amber { background:var(--amber); } .s-red { background:var(--red); }
-  .ramo-name { flex:1; font-size:14px; font-weight:500; }
-  .ramo-nota { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; letter-spacing:-0.5px; }
-  .nota-green { color:var(--green); } .nota-amber { color:var(--amber); } .nota-red { color:var(--red); }
-  .ramo-trend { font-size:13px; margin-left:4px; }
-  .pomo-card { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:1.25rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.15s; }
+  .section-title { font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:0.75rem; }
+
+  /* CANCHA DEL DÍA */
+  .cancha { background:var(--surface); border:1px solid var(--border); border-radius:18px; overflow:hidden; }
+  .zona { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; }
+  .zona + .zona { border-top:1px dashed var(--border); }
+  .zona-label { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; width:44px; flex-shrink:0; padding-top:8px; }
+  .zona-bloques { display:flex; flex-direction:column; gap:6px; flex:1; }
+  .bloque { border-radius:10px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .bloque-izq { display:flex; align-items:center; gap:8px; min-width:0; }
+  .bloque-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .bloque-nombre { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bloque-hora { font-size:11px; flex-shrink:0; }
+  .b-prueba { background:var(--red-soft); }
+  .b-prueba .bloque-dot { background:var(--red); }
+  .b-prueba .bloque-nombre { color:var(--red-dark); }
+  .b-prueba .bloque-hora { color:var(--red); }
+  .b-estudio { background:var(--green-soft); }
+  .b-estudio .bloque-dot { background:var(--green); }
+  .b-estudio .bloque-nombre { color:var(--green-dark); }
+  .b-estudio .bloque-hora { color:var(--green); }
+  .b-partido { background:var(--blue-soft); }
+  .b-partido .bloque-dot { background:var(--blue); }
+  .b-partido .bloque-nombre { color:var(--blue-mid); }
+  .b-partido .bloque-hora { color:var(--blue); }
+  .b-libre { background:var(--bg); border:1px solid var(--border); }
+  .b-libre .bloque-dot { background:var(--muted); }
+  .b-libre .bloque-nombre { color:var(--muted); }
+  .b-libre .bloque-hora { color:var(--muted); }
+  .b-trabajo { background:var(--amber-soft); }
+  .b-trabajo .bloque-dot { background:var(--amber); }
+  .b-trabajo .bloque-nombre { color:var(--amber-dark); }
+  .b-trabajo .bloque-hora { color:var(--amber); }
+  .cancha-empty { padding:1.5rem; text-align:center; color:var(--muted); font-size:13px; }
+
+  /* TAREAS PENDIENTES — pequeño resumen */
+  .tareas-resumen { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:border-color 0.15s; }
+  .tareas-resumen:hover { border-color:var(--blue); }
+  .tareas-num { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; color:var(--text); letter-spacing:-2px; line-height:1; }
+  .tareas-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+  .tareas-badge { font-size:12px; font-weight:500; padding:4px 12px; border-radius:20px; }
+  .tareas-ir { font-size:12px; color:var(--blue); font-weight:500; margin-top:6px; }
+  /* Minibarra progreso */
+  .mini-prog-wrap { margin-top:8px; background:var(--border); border-radius:10px; height:6px; overflow:hidden; }
+  .mini-prog-bar { height:100%; border-radius:10px; background:var(--blue); transition:width 0.6s ease; }
+
+  /* SEMÁFORO RAMOS CON BARRAS */
+  .semaforo-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:1.25rem; }
+  .sem-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+  .sem-header-left h3 { font-size:14px; font-weight:600; color:var(--text); }
+  .sem-header-left small { font-size:11px; color:var(--muted); }
+  .sem-ver { font-size:12px; color:var(--blue); font-weight:500; cursor:pointer; }
+  .ramo-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .ramo-row:last-of-type { margin-bottom:0; }
+  .ramo-nom { font-size:12px; color:var(--muted); width:88px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .barra-track { flex:1; height:7px; background:var(--border); border-radius:4px; overflow:hidden; }
+  .barra-fill { height:100%; border-radius:4px; transition:width 0.8s cubic-bezier(0.34,1.1,0.64,1); }
+  .fill-verde { background:var(--green); }
+  .fill-amarilla { background:var(--amber); }
+  .fill-roja { background:var(--red); }
+  .ramo-prom { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; width:30px; text-align:right; flex-shrink:0; }
+  .pv { color:var(--green); } .pa { color:var(--amber); } .pr { color:var(--red); }
+  .sem-chips { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:1rem; }
+  .sem-chip { border-radius:12px; padding:8px; text-align:center; }
+  .chip-verde { background:var(--green-soft); }
+  .chip-amarilla { background:var(--amber-soft); }
+  .chip-roja { background:var(--red-soft); }
+  .chip-num { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; line-height:1; }
+  .chip-verde .chip-num { color:var(--green); }
+  .chip-amarilla .chip-num { color:var(--amber); }
+  .chip-roja .chip-num { color:var(--red); }
+  .chip-lbl { font-size:10px; color:var(--muted); margin-top:3px; display:block; }
+
+  /* TEMPORADA */
+  .temporada-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:1.25rem; }
+  .temp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+  .temp-header h3 { font-size:14px; font-weight:600; color:var(--text); }
+  .temp-header small { font-size:11px; color:var(--muted); }
+  .semanas-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:4px; }
+  .semana-item { aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; cursor:default; }
+  .s-ganada { background:var(--green-soft); color:var(--green); }
+  .s-perdida { background:var(--red-soft); color:var(--red); }
+  .s-hoy { background:var(--blue); color:white; }
+  .s-futura { background:var(--border); color:var(--muted); }
+  .temp-stats { display:flex; gap:16px; margin-top:1rem; }
+  .temp-stat { display:flex; flex-direction:column; gap:2px; }
+  .temp-stat-num { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--text); }
+  .temp-stat-lbl { font-size:11px; color:var(--muted); }
+  .racha-fuego { font-size:18px; margin-left:auto; align-self:center; }
+
+  /* POMODORO RÁPIDO */
+  .pomo-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.25rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:border-color 0.15s; }
   .pomo-card:hover { border-color:var(--blue); }
-  .pomo-left { display:flex; flex-direction:column; gap:2px; }
   .pomo-label { font-size:12px; color:var(--muted); }
-  .pomo-time { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; color:var(--text); letter-spacing:-1px; }
-  .pomo-sub { font-size:12px; color:var(--muted); font-weight:300; }
+  .pomo-time { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; color:var(--text); letter-spacing:-1px; line-height:1; }
+  .pomo-sub { font-size:12px; color:var(--muted); margin-top:2px; }
   .pomo-btn { width:52px; height:52px; border-radius:50%; background:var(--blue); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; flex-shrink:0; }
-  .pomo-btn:hover { background:var(--blue-mid); transform:scale(1.05); }
-  .pomo-btn svg { width:20px; height:20px; fill:white; margin-left:2px; }
-  .racha-card { background:var(--blue); border-radius:16px; padding:1.25rem; display:flex; align-items:center; gap:1rem; }
-  .racha-num { font-family:'Syne',sans-serif; font-size:40px; font-weight:800; color:white; letter-spacing:-2px; flex-shrink:0; }
-  .racha-texts strong { display:block; font-size:14px; font-weight:500; color:white; }
-  .racha-texts span { font-size:12px; color:rgba(255,255,255,0.7); font-weight:300; }
-  .racha-emoji { font-size:28px; margin-left:auto; }
+  .pomo-btn:hover { transform:scale(1.05); }
+  .pomo-btn svg { width:20px; height:20px; fill:white; margin-left:3px; }
+
+  /* NAV */
   nav { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom)); z-index:10; }
-  .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 16px; border-radius:12px; cursor:pointer; border:none; background:transparent; }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 16px; border:none; background:transparent; cursor:pointer; }
   .nav-item svg { width:22px; height:22px; }
   .nav-item span { font-size:10px; font-weight:500; color:var(--muted); }
-  .nav-item.active span { color:var(--blue); } .nav-item.active svg { stroke:var(--blue); } .nav-item:not(.active) svg { stroke:var(--muted); }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .nav-item.active span { color:var(--blue); }
+  .nav-item.active svg { stroke:var(--blue); }
+  .nav-item:not(.active) svg { stroke:var(--muted); }
+
+  /* MENSAJE LIBRE */
+  .libre-msg { margin:0 1.25rem 0; background:var(--green-soft); border:1px solid var(--green); border-radius:14px; padding:1rem 1.25rem; display:none; animation:fadeIn 0.4s ease; }
+  .libre-msg.visible { display:block; }
+  .libre-msg p { font-size:14px; font-weight:500; color:var(--green-dark); }
+  .libre-msg small { font-size:12px; color:var(--green); }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
+
+<!-- HEADER -->
 <header>
-  <div class="header-left">
-    <span class="day" id="fechaHoy"></span>
-    <span class="greeting-h" id="saludoHora"></span>
+  <div>
+    <div class="day" id="fechaHoy"></div>
+    <div class="greeting-h" id="saludoHora"></div>
   </div>
-  <div class="avatar-sm" title="Ajustes" onclick="window.location='ajustes.html'">M</div>
+  <div class="avatar-sm" onclick="window.location='ajustes.html'" title="Ajustes">M</div>
 </header>
 
+<!-- VOZ -->
 <div class="voz-bar">
   <button class="voz-btn" id="vozBtn" onclick="toggleVoz()">
-    <div class="voz-icon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-6 8a7 7 0 0 0 14 0h-2a5 5 0 0 1-10 0H5zm7 9v-2h-2v2H8v2h8v-2h-2z"/></svg></div>
+    <div class="voz-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-6 8a7 7 0 0 0 14 0h-2a5 5 0 0 1-10 0H5zm7 9v-2h-2v2H8v2h8v-2h-2z"/></svg>
+    </div>
     <div class="voz-texts">
       <strong id="vozLabel">Habla con Martín Organizer</strong>
-      <span id="vozSub">Di "prueba de historia el jueves" o "bloquea 2 horas para estudiar"</span>
+      <span id="vozSub">Di "prueba de inglés el jueves" o "estudiar física mañana"</span>
     </div>
   </button>
 </div>
 <div class="transcript-box" id="transcriptBox"></div>
 
+<!-- BANNER PARTIDO U -->
+<div class="partido-banner" id="partidoBanner">
+  <div class="u-badge">
+    <svg viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="14" fill="#0D1B4B" stroke="#1E40AF" stroke-width="1.5"/>
+      <path d="M16 6 L18.5 13 L26 13 L20 17.5 L22.5 24.5 L16 20 L9.5 24.5 L12 17.5 L6 13 L13.5 13 Z" fill="#60A5FA"/>
+    </svg>
+  </div>
+  <div class="partido-info">
+    <div class="partido-label" id="pLabel">Hoy juega la U</div>
+    <div class="partido-nombre" id="pNombre">Universidad de Chile</div>
+    <div class="partido-hora" id="pHora"></div>
+  </div>
+  <div class="partido-tag" id="pTag">HOY</div>
+</div>
+
+<!-- MENSAJE "LA TARDE ES TUYA" -->
+<div class="libre-msg" id="libreMsg">
+  <p id="libreTitulo">¡Listo, la tarde es tuya! 🎉</p>
+  <small id="libreSubtitulo">Completaste todo. Descansa o haz lo que quieras.</small>
+</div>
+
+<!-- CANCHA DEL DÍA -->
 <section>
-  <div class="section-title">Resumen de hoy</div>
-  <div class="metrics">
-    <div class="metric-card">
-      <span class="label">Tareas pendientes</span>
-      <span class="value" id="cntPendientes">—</span>
-      <span class="badge badge-amber" id="badgeTareasHoy">Pendientes</span>
+  <div class="section-title">Tu cancha de hoy</div>
+  <div class="cancha" id="canchaWrap">
+    <div class="cancha-empty">Cargando tu día...</div>
+  </div>
+</section>
+
+<!-- TAREAS PENDIENTES -->
+<section>
+  <div class="section-title">Tareas pendientes</div>
+  <div class="tareas-resumen" onclick="window.location='tareas.html'">
+    <div>
+      <div class="tareas-num" id="tareasNum">—</div>
+      <div class="tareas-sub" id="tareasSub">pendientes esta semana</div>
+      <div class="mini-prog-wrap">
+        <div class="mini-prog-bar" id="miniProgBar" style="width:0%"></div>
+      </div>
+      <div class="tareas-ir">Ver todas mis tareas →</div>
     </div>
-    <div class="metric-card">
-      <span class="label">Próxima prueba</span>
-      <span class="value" style="font-size:16px;margin-top:4px;line-height:1.3" id="proximaPrueba">—</span>
-      <span class="sub" id="proximaPruebaRamo">Sin pruebas próximas</span>
-    </div>
-    <div class="metric-card">
-      <span class="label">Pomodoros hoy</span>
-      <span class="value" id="cntPomodoros">0</span>
-      <span class="badge badge-green">Sesiones completadas</span>
-    </div>
-    <div class="metric-card">
-      <span class="label">Promedio general</span>
-      <span class="value" id="promedioGeneral">—</span>
-      <span class="badge badge-blue" id="badgePromedio">Mis ramos</span>
+    <div style="text-align:right">
+      <div class="tareas-badge" id="tareasBadge"></div>
+      <div style="margin-top:8px;font-size:24px" id="tareasEmoji">📋</div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="section-title">Tareas de hoy</div>
-  <div class="task-list" id="taskList"><div class="empty-msg">Cargando...</div></div>
-</section>
-
+<!-- SEMÁFORO RAMOS -->
 <section>
   <div class="section-title">Mis ramos</div>
-  <div class="ramos-list" id="ramosList"><div class="empty-msg">Cargando...</div></div>
+  <div class="semaforo-card">
+    <div class="sem-header">
+      <div class="sem-header-left">
+        <h3>Rendimiento académico</h3>
+        <small id="semSubtitle">Cargando notas...</small>
+      </div>
+      <div class="sem-ver" onclick="window.location='notas.html'">Ver detalle →</div>
+    </div>
+    <div id="ramosBarras"></div>
+    <div class="sem-chips">
+      <div class="sem-chip chip-verde"><div class="chip-num" id="cntVerde">—</div><span class="chip-lbl">Bien</span></div>
+      <div class="sem-chip chip-amarilla"><div class="chip-num" id="cntAmarillo">—</div><span class="chip-lbl">Atención</span></div>
+      <div class="sem-chip chip-roja"><div class="chip-num" id="cntRojo">—</div><span class="chip-lbl">Riesgo</span></div>
+    </div>
+  </div>
 </section>
 
+<!-- TEMPORADA -->
 <section>
+  <div class="section-title">Tu temporada</div>
+  <div class="temporada-card">
+    <div class="temp-header">
+      <h3 id="tempTitulo">Semana — de 40</h3>
+      <small id="tempSub"></small>
+    </div>
+    <div class="semanas-grid" id="semanasGrid"></div>
+    <div class="temp-stats">
+      <div class="temp-stat">
+        <div class="temp-stat-num" id="tempGanadas">—</div>
+        <div class="temp-stat-lbl">semanas ganadas</div>
+      </div>
+      <div class="temp-stat">
+        <div class="temp-stat-num" id="tempRacha">—</div>
+        <div class="temp-stat-lbl">de racha</div>
+      </div>
+      <div class="racha-fuego" id="tempFuego">🔥</div>
+    </div>
+  </div>
+</section>
+
+<!-- POMODORO RÁPIDO -->
+<section style="padding-bottom:1rem">
   <div class="section-title">Pomodoro</div>
   <div class="pomo-card" onclick="window.location='pomodoro.html'">
-    <div class="pomo-left">
-      <span class="pomo-label">Tiempo de enfoque</span>
-      <span class="pomo-time" id="pomoDisplay">25:00</span>
-      <span class="pomo-sub" id="pomoSub">Listo para empezar</span>
+    <div>
+      <div class="pomo-label">Tiempo de enfoque</div>
+      <div class="pomo-time" id="pomoDisplay">25:00</div>
+      <div class="pomo-sub" id="pomoSub">Listo para empezar</div>
     </div>
     <button class="pomo-btn" id="pomoBtnMain" onclick="event.stopPropagation();togglePomo()">
       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -164,18 +301,7 @@
   </div>
 </section>
 
-<section style="padding-bottom:1rem">
-  <div class="section-title">Tu racha</div>
-  <div class="racha-card">
-    <span class="racha-num" id="rachaNum">1</span>
-    <div class="racha-texts">
-      <strong>días seguidos organizándote</strong>
-      <span id="rachaMsg">¡Empieza tu racha hoy!</span>
-    </div>
-    <span class="racha-emoji">🔥</span>
-  </div>
-</section>
-
+<!-- NAV -->
 <nav>
   <button class="nav-item active" onclick="window.location='dashboard.html'">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -200,133 +326,315 @@
 </nav>
 
 <script>
+// ── UTILS ──
 const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS_C = ['dom','lun','mar','mié','jue','vie','sáb'];
+const MES_C  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+function hoyStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtFecha(str) {
+  if (!str) return '';
+  const d = new Date(str+'T12:00:00');
+  return `${DIAS_C[d.getDay()]} ${d.getDate()} ${MES_C[d.getMonth()]}`;
+}
+function get(key, fallback=[]) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch { return fallback; }
+}
+
+// ── FECHA Y SALUDO ──
 const ahora = new Date();
-const hora  = ahora.getHours();
-document.getElementById('fechaHoy').textContent = `${DIAS[ahora.getDay()]} ${ahora.getDate()} de ${MESES[ahora.getMonth()]}`;
-document.getElementById('saludoHora').textContent = hora<12?'Buenos días, Martín ☀️':hora<19?'Buenas tardes, Martín 👊':'Buenas noches, Martín 🌙';
+const hora = ahora.getHours();
+document.getElementById('fechaHoy').textContent =
+  `${DIAS[ahora.getDay()]} ${ahora.getDate()} de ${MESES[ahora.getMonth()]}`;
+document.getElementById('saludoHora').textContent =
+  hora < 12 ? 'Buenos días, Martín ☀️' :
+  hora < 19 ? 'Buenas tardes, Martín 👊' : 'Buenas noches, Martín 🌙';
 
-function hoyStr() { return new Date().toISOString().split('T')[0]; }
+// ── PARTIDO U ──
+function cargarPartido() {
+  // Guardado en localStorage por el cron de Vercel (Fase 3)
+  // Por ahora: buscar en eventos del calendario si hay partido de la U
+  const eventos = get('martin_eventos');
+  const hoy = hoyStr();
+  const manana = (() => {
+    const m = new Date(); m.setDate(m.getDate()+1);
+    return `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}-${String(m.getDate()).padStart(2,'0')}`;
+  })();
 
-// ── TAREAS REALES ──
-function getTareas() { try { return JSON.parse(localStorage.getItem('martin_tareas'))||[]; } catch { return []; } }
+  // Buscar en martin_partido (lo pone Vercel en Fase 3)
+  const partidoGuardado = get('martin_partido_u', null);
+  if (partidoGuardado && (partidoGuardado.fecha === hoy || partidoGuardado.fecha === manana)) {
+    mostrarPartido(partidoGuardado);
+    return;
+  }
 
+  // Fallback: buscar en eventos del calendario
+  const partidoEv = eventos.find(e =>
+    (e.fecha === hoy || e.fecha === manana) &&
+    (e.nombre.toLowerCase().includes('u. de chile') ||
+     e.nombre.toLowerCase().includes('universidad de chile') ||
+     e.tipo === 'partido')
+  );
+  if (partidoEv) {
+    mostrarPartido({
+      rival: partidoEv.nombre,
+      hora: partidoEv.inicio,
+      fecha: partidoEv.fecha,
+      estadio: partidoEv.notas || ''
+    });
+  }
+}
+
+function mostrarPartido(p) {
+  const hoy = hoyStr();
+  const banner = document.getElementById('partidoBanner');
+  document.getElementById('pLabel').textContent = p.fecha === hoy ? 'Hoy juega la U 🔵' : 'Mañana juega la U';
+  document.getElementById('pNombre').textContent = p.rival || 'Universidad de Chile';
+  document.getElementById('pHora').textContent = `${p.estadio ? p.estadio + ' · ' : ''}${p.hora || ''}`;
+  document.getElementById('pTag').textContent = p.fecha === hoy ? 'HOY' : 'MAÑANA';
+  document.getElementById('pTag').className = p.fecha === hoy ? 'partido-tag' : 'partido-tag pronto';
+  banner.classList.add('visible');
+}
+
+// ── CANCHA DEL DÍA ──
+function renderCancha() {
+  const tareas = get('martin_tareas');
+  const eventos = get('martin_eventos');
+  const hoy = hoyStr();
+
+  // Agrupar eventos y tareas del día por zona
+  const zonas = {
+    mañana: [],
+    tarde: [],
+    noche: []
+  };
+
+  const zonaDeHora = h => {
+    if (!h) return 'tarde';
+    const hr = parseInt(h.split(':')[0]);
+    if (hr < 13) return 'mañana';
+    if (hr < 20) return 'tarde';
+    return 'noche';
+  };
+
+  // Tareas de hoy
+  tareas.filter(t => !t.done && t.fecha === hoy).forEach(t => {
+    const zona = zonaDeHora(t.hora);
+    const clase = t.tipo === 'prueba' ? 'b-prueba' :
+                  t.tipo === 'trabajo' ? 'b-trabajo' :
+                  t.tipo === 'control' ? 'b-prueba' : 'b-estudio';
+    zonas[zona].push({ nombre: t.nombre, hora: t.hora || '', clase });
+  });
+
+  // Eventos del calendario de hoy
+  eventos.filter(e => e.fecha === hoy && !e.desdeTareas).forEach(e => {
+    const zona = zonaDeHora(e.inicio);
+    const clase = e.tipo === 'prueba' ? 'b-prueba' :
+                  e.tipo === 'partido' ? 'b-partido' :
+                  e.tipo === 'personal' ? 'b-libre' : 'b-estudio';
+    zonas[zona].push({ nombre: e.nombre, hora: e.inicio || '', clase });
+  });
+
+  // Partido de la U si es hoy
+  const partido = get('martin_partido_u', null);
+  if (partido && partido.fecha === hoy && partido.hora) {
+    const zona = zonaDeHora(partido.hora);
+    zonas[zona].push({ nombre: `U. de Chile vs ${partido.rival || '...'}`, hora: partido.hora, clase: 'b-partido' });
+  }
+
+  const wrap = document.getElementById('canchaWrap');
+  const totalBloques = Object.values(zonas).flat().length;
+
+  if (totalBloques === 0) {
+    wrap.innerHTML = `<div class="cancha-empty">Sin compromisos para hoy — usa el botón de voz para agregar</div>`;
+    return;
+  }
+
+  const zonaHTML = (label, items) => {
+    if (items.length === 0) return '';
+    const bloques = items.map(b => `
+      <div class="bloque ${b.clase}">
+        <div class="bloque-izq">
+          <div class="bloque-dot"></div>
+          <div class="bloque-nombre">${b.nombre}</div>
+        </div>
+        <div class="bloque-hora">${b.hora}</div>
+      </div>`).join('');
+    return `<div class="zona"><div class="zona-label">${label}</div><div class="zona-bloques">${bloques}</div></div>`;
+  };
+
+  wrap.innerHTML =
+    zonaHTML('Mañana', zonas.mañana) +
+    zonaHTML('Tarde', zonas.tarde) +
+    zonaHTML('Noche', zonas.noche);
+}
+
+// ── TAREAS RESUMEN ──
 function renderTareas() {
-  const tareas = getTareas();
+  const tareas = get('martin_tareas');
   const hoy = hoyStr();
   const urgOrd = {urgente:0,media:1,normal:2};
-  // Mostrar todas las pendientes (no solo hoy), ordenadas por urgencia y fecha
-  const pendientes = tareas.filter(t=>!t.done).sort((a,b)=>{
-    const uDiff=(urgOrd[a.urgencia]||2)-(urgOrd[b.urgencia]||2);
-    if(uDiff!==0) return uDiff;
-    return (a.fecha||'').localeCompare(b.fecha||'');
-  });
-  const list = document.getElementById('taskList');
-  document.getElementById('cntPendientes').textContent = pendientes.length;
-  // Badge dinámico según cuándo vencen
-  const badge = document.getElementById('badgeTareasHoy');
-  if (badge) {
-    const vencidas = pendientes.filter(t=>t.fecha<hoy).length;
-    const deHoy = pendientes.filter(t=>t.fecha===hoy).length;
-    if (vencidas > 0) { badge.textContent = `${vencidas} vencida${vencidas>1?'s':''}`; badge.className='badge badge-red'; }
-    else if (deHoy > 0) { badge.textContent = 'Para hoy'; badge.className='badge badge-amber'; }
-    else { badge.textContent = 'Esta semana'; badge.className='badge badge-blue'; }
-  }
-  if (!pendientes.length) { list.innerHTML=`<div class="empty-msg">¡Sin tareas pendientes! 🎉</div>`; return; }
-  const tagC={prueba:'tag-prueba',tarea:'tag-tarea',trabajo:'tag-trabajo',control:'tag-control'};
-  const tagL={prueba:'Prueba',tarea:'Tarea',trabajo:'Trabajo',control:'Control'};
-  const DIAS_C=['dom','lun','mar','mié','jue','vie','sáb'];
-  const MES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const etiqDia = f=>{
-    if(!f) return '';
-    if(f<hoy) return '⚠ Vencida';
-    if(f===hoy) return 'Hoy';
-    const d=new Date(f+'T12:00:00');
-    return `${DIAS_C[d.getDay()]} ${d.getDate()} ${MES_C[d.getMonth()]}`;
-  };
-  // Urgencia automática por fecha
-  const urgAuto = t=>{
-    if(t.urgencia==='urgente') return t.urgencia;
-    if(!t.fecha) return 'normal';
-    const diff=Math.ceil((new Date(t.fecha+'T12:00:00')-new Date())/(1000*60*60*24));
-    if(diff<=2) return 'urgente';
-    if(diff<=5) return 'media';
-    return 'normal';
-  };
-  list.innerHTML = pendientes.slice(0,5).map(t=>`
-    <div class="task-item" onclick="this.classList.toggle('done')">
-      <div class="task-check"></div>
-      <div class="task-body">
-        <div class="task-name">${t.nombre}</div>
-        <div class="task-meta">${t.ramo} · ${urgAuto(t)==='urgente'?'⚠ Urgente · ':''}${etiqDia(t.fecha)}</div>
-      </div>
-      <span class="task-tag ${tagC[t.tipo]||'tag-tarea'}">${tagL[t.tipo]||t.tipo}</span>
-    </div>`).join('');
-  if (pendientes.length>5) list.innerHTML+=`<div class="ver-mas" onclick="window.location='tareas.html'">Ver ${pendientes.length-5} más en Tareas →</div>`;
+  const pendientes = tareas.filter(t => !t.done).sort((a,b)=>
+    (urgOrd[a.urgencia]||2)-(urgOrd[b.urgencia]||2));
+  const total = tareas.length;
+  const hechas = tareas.filter(t=>t.done).length;
+  const pct = total ? Math.round(hechas/total*100) : 0;
 
-  // Próxima prueba real
-  const pruebas = tareas.filter(t=>!t.done&&t.tipo==='prueba'&&t.fecha>=hoy).sort((a,b)=>a.fecha.localeCompare(b.fecha));
-  if (pruebas.length) {
-    const p=pruebas[0], d=new Date(p.fecha+'T12:00:00');
-    document.getElementById('proximaPrueba').textContent = DIAS[d.getDay()].charAt(0).toUpperCase()+DIAS[d.getDay()].slice(1,3);
-    document.getElementById('proximaPruebaRamo').textContent = p.ramo;
+  document.getElementById('tareasNum').textContent = pendientes.length;
+  document.getElementById('miniProgBar').style.width = pct + '%';
+
+  const vencidas = pendientes.filter(t=>t.fecha && t.fecha < hoy).length;
+  const deHoy = pendientes.filter(t=>t.fecha===hoy).length;
+  const badge = document.getElementById('tareasBadge');
+  const emoji = document.getElementById('tareasEmoji');
+
+  if (pendientes.length === 0) {
+    document.getElementById('tareasSub').textContent = '¡Todo al día!';
+    badge.textContent = '100% ✓'; badge.style.cssText='background:var(--green-soft);color:var(--green-dark);font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px';
+    emoji.textContent = '🏆';
+    document.getElementById('libreMsg').classList.add('visible');
+    // Si hay partido hoy
+    const p = get('martin_partido_u', null);
+    if (p && p.fecha === hoy) {
+      document.getElementById('libreTitulo').textContent = '¡Listo! La noche es tuya 🎉';
+      document.getElementById('libreSubtitulo').textContent = `U. de Chile juega a las ${p.hora} — no te lo pierdas.`;
+    }
+  } else if (vencidas > 0) {
+    document.getElementById('tareasSub').textContent = 'pendientes';
+    badge.textContent = `${vencidas} vencida${vencidas>1?'s':''}`;
+    badge.style.cssText='background:var(--red-soft);color:var(--red-dark);font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px';
+    emoji.textContent = '⚠️';
+  } else if (deHoy > 0) {
+    document.getElementById('tareasSub').textContent = 'pendientes';
+    badge.textContent = `${deHoy} para hoy`;
+    badge.style.cssText='background:var(--amber-soft);color:var(--amber-dark);font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px';
+    emoji.textContent = '📋';
+  } else {
+    document.getElementById('tareasSub').textContent = 'pendientes esta semana';
+    badge.textContent = 'Esta semana';
+    badge.style.cssText='background:var(--blue-soft);color:var(--blue-mid);font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px';
+    emoji.textContent = '📅';
   }
 }
 
-// ── NOTAS REALES ──
-function getRamos() { try { return JSON.parse(localStorage.getItem('martin_notas'))||[]; } catch { return []; } }
-
+// ── SEMÁFORO RAMOS ──
 function renderRamos() {
-  const ramos = getRamos();
-  const list = document.getElementById('ramosList');
-  if (!ramos.length) { list.innerHTML=`<div class="ver-mas" onclick="window.location='notas.html'">Agrega tus notas →</div>`; return; }
-  const prom = ns => ns.reduce((s,n)=>s+n.val,0)/ns.length;
-  const tend = ns => { if(ns.length<2)return'→'; const s=[...ns].sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)),m=Math.floor(s.length/2),p1=prom(s.slice(0,m)),p2=prom(s.slice(m)); return p2-p1>0.2?'↑':p1-p2>0.2?'↓':'→'; };
-  const sc = p=>p>=5.5?'s-green':p>=4.5?'s-amber':'s-red';
-  const nc = p=>p>=5.5?'nota-green':p>=4.5?'nota-amber':'nota-red';
-  let suma=0;
-  list.innerHTML = ramos.map(r=>{ const p=prom(r.notas); suma+=p; return `
-    <div class="ramo-item" onclick="window.location='notas.html'">
-      <div class="semaforo ${sc(p)}"></div>
-      <span class="ramo-name">${r.nombre}</span>
-      <span class="ramo-nota ${nc(p)}">${p.toFixed(1)}</span>
-      <span class="ramo-trend">${tend(r.notas)}</span>
-    </div>`; }).join('');
-  const pg = suma/ramos.length;
-  document.getElementById('promedioGeneral').textContent = pg.toFixed(1);
-  const riesgo = ramos.filter(r=>prom(r.notas)<4.5).length;
-  if (riesgo) document.getElementById('badgePromedio').textContent=`⚠ ${riesgo} ramo${riesgo>1?'s':''} en riesgo`;
+  const ramos = get('martin_notas', []);
+  const barras = document.getElementById('ramosBarras');
+
+  if (!ramos.length) {
+    barras.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:0.5rem 0;text-align:center">
+      <span style="cursor:pointer;color:var(--blue)" onclick="window.location='notas.html'">Agrega tus notas para ver el semáforo →</span>
+    </div>`;
+    document.getElementById('semSubtitle').textContent = 'Sin datos aún';
+    ['cntVerde','cntAmarillo','cntRojo'].forEach(id=>document.getElementById(id).textContent='0');
+    return;
+  }
+
+  const prom = ns => ns.length ? ns.reduce((s,n)=>s+n.val,0)/ns.length : 0;
+  let verde=0,amarillo=0,rojo=0;
+  let sumaProms=0;
+
+  // Ordenar por promedio ascendente (primero los en riesgo)
+  const ramosOrdenados = [...ramos].sort((a,b)=>prom(a.notas)-prom(b.notas));
+
+  barras.innerHTML = ramosOrdenados.slice(0,6).map(r => {
+    const p = prom(r.notas);
+    sumaProms += p;
+    const pct = Math.min(100, Math.round((p/7)*100));
+    let clase, claseProm;
+    if (p >= 5.5) { verde++; clase='fill-verde'; claseProm='pv'; }
+    else if (p >= 4.5) { amarillo++; clase='fill-amarilla'; claseProm='pa'; }
+    else { rojo++; clase='fill-roja'; claseProm='pr'; }
+    return `<div class="ramo-row">
+      <div class="ramo-nom" title="${r.nombre}">${r.nombre}</div>
+      <div class="barra-track"><div class="barra-fill ${clase}" style="width:${r.notas.length?pct:0}%"></div></div>
+      <div class="ramo-prom ${claseProm}">${r.notas.length?p.toFixed(1):'—'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cntVerde').textContent = verde;
+  document.getElementById('cntAmarillo').textContent = amarillo;
+  document.getElementById('cntRojo').textContent = rojo;
+  const promGen = ramos.length ? sumaProms/Math.min(6,ramos.length) : 0;
+  document.getElementById('semSubtitle').textContent = ramos.length
+    ? `Promedio general: ${promGen.toFixed(1)}`
+    : 'Sin datos aún';
 }
 
-// ── POMODOROS HOY ──
-function getPomodoros() {
-  try { const h=JSON.parse(localStorage.getItem('martin_pomo_hist'))||[]; return h.filter(x=>x.fecha===new Date().toDateString()&&x.completado).length; }
-  catch { return 0; }
+// ── TEMPORADA ──
+function renderTemporada() {
+  const SEMANAS_TOTAL = 40;
+  const racha = parseInt(localStorage.getItem('martin_racha')) || 1;
+  const historial = get('martin_temp_semanas', []);
+
+  // Calcular semana actual del año
+  const ahora = new Date();
+  const inicioAno = new Date(ahora.getFullYear(), 0, 1);
+  const semanaActual = Math.ceil(((ahora - inicioAno) / 86400000 + inicioAno.getDay() + 1) / 7);
+  const semanaApp = Math.min(semanaActual, SEMANAS_TOTAL);
+
+  document.getElementById('tempTitulo').textContent = `Semana ${semanaApp} de ${SEMANAS_TOTAL}`;
+  document.getElementById('tempSub').textContent = `Temporada ${ahora.getFullYear()}`;
+
+  // Generar grid de semanas
+  const grid = document.getElementById('semanasGrid');
+  let html = '';
+  let ganadas = 0;
+
+  for (let i = 1; i <= SEMANAS_TOTAL; i++) {
+    if (i < semanaApp) {
+      const gano = historial.includes(i) || (i > semanaApp - racha - 1 && i < semanaApp);
+      if (gano) ganadas++;
+      html += `<div class="semana-item ${gano?'s-ganada':'s-perdida'}" title="Semana ${i}">S${i}</div>`;
+    } else if (i === semanaApp) {
+      html += `<div class="semana-item s-hoy" title="Esta semana">S${i}</div>`;
+    } else {
+      html += `<div class="semana-item s-futura" title="Semana ${i}">S${i}</div>`;
+    }
+  }
+
+  grid.innerHTML = html;
+  document.getElementById('tempGanadas').textContent = ganadas;
+  document.getElementById('tempRacha').textContent = `${racha} sem.`;
+  document.getElementById('tempFuego').textContent = racha >= 4 ? '🔥' : racha >= 2 ? '⚡' : '💪';
 }
 
-// ── RACHA ──
+// ── ACTUALIZAR RACHA ──
 function actualizarRacha() {
-  const hoy=hoyStr(), ayer=new Date(); ayer.setDate(ayer.getDate()-1);
-  const ayerStr=ayer.toISOString().split('T')[0];
-  const ultima=localStorage.getItem('martin_ultima_visita');
-  let racha=parseInt(localStorage.getItem('martin_racha'))||1;
-  if (ultima&&ultima!==hoy) racha=ultima===ayerStr?racha+1:1;
-  localStorage.setItem('martin_racha',racha); localStorage.setItem('martin_ultima_visita',hoy);
-  return racha;
+  const hoy = hoyStr();
+  const ayer = new Date(); ayer.setDate(ayer.getDate()-1);
+  const ayerStr = `${ayer.getFullYear()}-${String(ayer.getMonth()+1).padStart(2,'0')}-${String(ayer.getDate()).padStart(2,'0')}`;
+  const ultima = localStorage.getItem('martin_ultima_visita');
+  let racha = parseInt(localStorage.getItem('martin_racha')) || 1;
+  if (ultima && ultima !== hoy) racha = ultima === ayerStr ? racha+1 : 1;
+  localStorage.setItem('martin_racha', racha);
+  localStorage.setItem('martin_ultima_visita', hoy);
 }
 
 // ── POMODORO RÁPIDO ──
-let pomoInterval=null,pomoSeconds=25*60,pomoRunning=false;
-function togglePomo() {
-  if (!pomoRunning) {
+let pomoInterval=null,pomoSecs=25*60,pomoRunning=false;
+function togglePomo(){
+  if(!pomoRunning){
     pomoRunning=true;
     document.getElementById('pomoSub').textContent='Enfocado 🎯';
     document.getElementById('pomoBtnMain').innerHTML='<svg viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
     pomoInterval=setInterval(()=>{
-      pomoSeconds--;
-      if(pomoSeconds<=0){clearInterval(pomoInterval);pomoRunning=false;pomoSeconds=25*60;document.getElementById('pomoDisplay').textContent='25:00';document.getElementById('pomoSub').textContent='¡Tiempo! Descansa 🎉';document.getElementById('pomoBtnMain').innerHTML='<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';document.getElementById('cntPomodoros').textContent=parseInt(document.getElementById('cntPomodoros').textContent)+1;return;}
-      document.getElementById('pomoDisplay').textContent=String(Math.floor(pomoSeconds/60)).padStart(2,'0')+':'+String(pomoSeconds%60).padStart(2,'0');
+      pomoSecs--;
+      if(pomoSecs<=0){
+        clearInterval(pomoInterval);pomoRunning=false;pomoSecs=25*60;
+        document.getElementById('pomoDisplay').textContent='25:00';
+        document.getElementById('pomoSub').textContent='¡Tiempo! Descansa 🎉';
+        document.getElementById('pomoBtnMain').innerHTML='<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+        return;
+      }
+      document.getElementById('pomoDisplay').textContent=
+        String(Math.floor(pomoSecs/60)).padStart(2,'0')+':'+String(pomoSecs%60).padStart(2,'0');
     },1000);
   } else {
     clearInterval(pomoInterval);pomoRunning=false;
@@ -337,17 +645,17 @@ function togglePomo() {
 
 // ── VOZ ──
 let recognition=null,vozActiva=false;
-function toggleVoz() {
+function toggleVoz(){
   if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Usa Chrome o Safari.');return;}
   if(vozActiva){recognition&&recognition.stop();return;}
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  recognition=new SR(); recognition.lang='es-CL'; recognition.continuous=false; recognition.interimResults=true;
+  recognition=new SR();recognition.lang='es-CL';recognition.continuous=false;recognition.interimResults=true;
   recognition.onstart=()=>{vozActiva=true;document.getElementById('vozBtn').classList.add('listening');document.getElementById('vozLabel').textContent='Escuchando...';document.getElementById('transcriptBox').classList.add('visible');document.getElementById('transcriptBox').textContent='🎙 Habla ahora...';};
   recognition.onresult=(e)=>{document.getElementById('transcriptBox').textContent=Array.from(e.results).map(r=>r[0].transcript).join('');};
   recognition.onend=()=>{
     vozActiva=false;document.getElementById('vozBtn').classList.remove('listening');
     document.getElementById('vozLabel').textContent='Habla con Martín Organizer';
-    document.getElementById('vozSub').textContent='Di "prueba de historia el jueves" o "bloquea 2 horas para estudiar"';
+    document.getElementById('vozSub').textContent='Di "prueba de inglés el jueves" o "estudiar física mañana"';
     const txt=document.getElementById('transcriptBox').textContent;
     if(txt&&txt!=='🎙 Habla ahora...') procesarVoz(txt);
   };
@@ -355,58 +663,50 @@ function toggleVoz() {
   recognition.start();
 }
 
-function procesarVoz(texto) {
+function procesarVoz(texto){
   const t=texto.toLowerCase();
   const ramosL=['física','matemáticas','matemática','historia','lenguaje','inglés','química','biología','filosofía'];
   const diasL=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
   const ramo=ramosL.find(r=>t.includes(r))||'ramo';
-  // IMPORTANTE: pasado mañana ANTES que mañana
-  const dia=t.includes('pasado mañana')||t.includes('pasado manana') ? 'pasado mañana' :
-             t.includes('mañana')||t.includes('manana') ? 'mañana' :
-             t.includes('hoy') ? 'hoy' :
+  const dia=t.includes('pasado mañana')||t.includes('pasado manana')?'pasado mañana':
+             t.includes('mañana')||t.includes('manana')?'mañana':
+             t.includes('hoy')?'hoy':
              diasL.find(d=>t.includes(d))||'hoy';
   let tipo='tarea';
   if(t.includes('prueba')||t.includes('examen')) tipo='prueba';
   else if(t.includes('trabajo')) tipo='trabajo';
-  let respuesta='';
-  if(t.includes('bloquea')||t.includes('reserva')){
-    respuesta='📅 Ve al calendario para bloquear ese tiempo';
-  } else if(t.includes('pomodoro')){
-    togglePomo(); respuesta='⏱ Pomodoro iniciado';
-  } else {
-    const diasSem=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-    const dIdx=diasSem.indexOf(dia);
-    let fecha=hoyStr();
-    const hoyPts=hoyStr().split('-');
-    const hoyBase=new Date(parseInt(hoyPts[0]),parseInt(hoyPts[1])-1,parseInt(hoyPts[2]));
-    const fmtLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    if(dia==='mañana'){const m=new Date(hoyBase);m.setDate(hoyBase.getDate()+1);fecha=fmtLocal(m);}
-    else if(dia==='pasado mañana'){const p=new Date(hoyBase);p.setDate(hoyBase.getDate()+2);fecha=fmtLocal(p);}
-    else if(dIdx!==-1){const h=new Date(hoyBase);let diff=dIdx-h.getDay();if(diff<=0)diff+=7;const td=new Date(h);td.setDate(h.getDate()+diff);fecha=fmtLocal(td);}
-    const tareas=getTareas();
-    const rdisplay=ramo.charAt(0).toUpperCase()+ramo.slice(1);
-    const nvNombre=tipo==='prueba'?`Prueba de ${rdisplay}`:
-                   tipo==='control'?`Control de ${rdisplay}`:
-                   tipo==='trabajo'?`Trabajo de ${rdisplay}`:
-                   t.includes('estudiar')?`Estudiar ${rdisplay!=='Ramo'?rdisplay:texto.trim().slice(0,25)}`:
-                   texto.trim().charAt(0).toUpperCase()+texto.trim().slice(0,50);
-    const nvUrg=t.includes('urgente')?'urgente':dia==='mañana'||dia==='pasado mañana'?'media':'normal';
-    tareas.unshift({id:Date.now(),nombre:nvNombre,ramo:rdisplay,tipo,fecha,urgencia:nvUrg,notas:texto.trim(),done:false});
-    localStorage.setItem('martin_tareas',JSON.stringify(tareas));
-    renderTareas();
-    respuesta=`✅ ${tipo.charAt(0).toUpperCase()+tipo.slice(1)} de ${ramo} anotada para el ${dia}`;
-  }
-  document.getElementById('transcriptBox').textContent=respuesta;
+  else if(t.includes('control')) tipo='control';
+  const rdisplay=ramo.charAt(0).toUpperCase()+ramo.slice(1);
+  const nvNombre=tipo==='prueba'?`Prueba de ${rdisplay}`:
+                 tipo==='control'?`Control de ${rdisplay}`:
+                 tipo==='trabajo'?`Trabajo de ${rdisplay}`:
+                 t.includes('estudiar')?`Estudiar ${rdisplay!=='Ramo'?rdisplay:texto.trim().slice(0,25)}`:
+                 texto.trim().charAt(0).toUpperCase()+texto.trim().slice(0,50);
+  const hoyPts=hoyStr().split('-');
+  const hoyBase=new Date(parseInt(hoyPts[0]),parseInt(hoyPts[1])-1,parseInt(hoyPts[2]));
+  const fmtL=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const diasSem=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const dIdx=diasSem.indexOf(dia);
+  let fecha=hoyStr();
+  if(dia==='mañana'){const m=new Date(hoyBase);m.setDate(hoyBase.getDate()+1);fecha=fmtL(m);}
+  else if(dia==='pasado mañana'){const p=new Date(hoyBase);p.setDate(hoyBase.getDate()+2);fecha=fmtL(p);}
+  else if(dIdx!==-1){const h=new Date(hoyBase);let diff=dIdx-h.getDay();if(diff<=0)diff+=7;const td=new Date(h);td.setDate(h.getDate()+diff);fecha=fmtL(td);}
+  const nvUrg=t.includes('urgente')?'urgente':dia==='mañana'||dia==='pasado mañana'?'media':'normal';
+  const tareas=get('martin_tareas');
+  tareas.unshift({id:Date.now(),nombre:nvNombre,ramo:rdisplay,tipo,fecha,urgencia:nvUrg,notas:texto.trim(),done:false});
+  localStorage.setItem('martin_tareas',JSON.stringify(tareas));
+  renderTareas();renderCancha();
+  document.getElementById('transcriptBox').textContent=`✅ "${nvNombre}" — ${fmtFecha(fecha)}`;
   setTimeout(()=>document.getElementById('transcriptBox').classList.remove('visible'),4000);
 }
 
 // ── INIT ──
+actualizarRacha();
+cargarPartido();
+renderCancha();
 renderTareas();
 renderRamos();
-document.getElementById('cntPomodoros').textContent=getPomodoros();
-const racha=actualizarRacha();
-document.getElementById('rachaNum').textContent=racha;
-document.getElementById('rachaMsg').textContent=racha>=7?'¡Una semana seguida! 🏆':racha>=3?'¡Buen ritmo, sigue así!':'¡Empieza tu racha hoy!';
+renderTemporada();
 </script>
 </body>
 </html>
