@@ -61,6 +61,7 @@
   .s-verde   { background:var(--green); }
   .s-amarillo { background:var(--amber); }
   .s-rojo    { background:var(--red); }
+  .s-vacio   { background:transparent; border:2px solid var(--muted); }
   .ramo-info { flex:1; min-width:0; }
   .ramo-nombre { font-size:15px; font-weight:500; color:var(--text); }
   .ramo-meta { font-size:12px; color:var(--muted); font-weight:300; margin-top:2px; }
@@ -416,7 +417,17 @@ function render() {
     return;
   }
 
-  ramosFiltrados.forEach((r, fIdx) => {
+  // Ordenar: primero los que tienen notas (por semáforo riesgo primero), luego los vacíos
+  const conNotas = ramosFiltrados.filter(r => r.notas.length > 0)
+    .sort((a,b) => {
+      const pa = a.notas.reduce((s,n)=>s+n.val,0)/a.notas.length;
+      const pb = b.notas.reduce((s,n)=>s+n.val,0)/b.notas.length;
+      return pa - pb; // riesgo primero
+    });
+  const sinNotas = ramosFiltrados.filter(r => r.notas.length === 0);
+  const ramosOrdenados = [...conNotas, ...sinNotas];
+
+  ramosOrdenados.forEach((r, fIdx) => {
     const globalIdx = ramos.indexOf(r);
     const prom = promedio(r.notas);
     const tend = tendencia(r.notas);
@@ -465,12 +476,13 @@ function render() {
     card.className = 'ramo-card';
     card.setAttribute('data-gidx', globalIdx);
 
+    const sinNotasClass = r.notas.length === 0 ? 'style="opacity:0.55"' : '';
     card.innerHTML = `
-      <div class="ramo-header" onclick="toggleRamo(this)">
-        <div class="semaforo-dot ${colorSem(sem)}"></div>
+      <div class="ramo-header" onclick="toggleRamo(this)" ${sinNotasClass}>
+        <div class="semaforo-dot ${r.notas.length ? colorSem(sem) : 's-vacio'}"></div>
         <div class="ramo-info">
           <div class="ramo-nombre">${r.nombre}</div>
-          <div class="ramo-meta">${r.notas.length} evaluaciones · ${tend === '↑' ? 'Subiendo' : tend === '↓' ? 'Bajando' : 'Estable'}</div>
+          <div class="ramo-meta">${r.notas.length ? `${r.notas.length} evaluaciones · ${tend === '↑' ? 'Subiendo' : tend === '↓' ? 'Bajando' : 'Estable'}` : 'Sin notas aún — toca para agregar'}</div>
         </div>
         <div class="ramo-right">
           <div class="ramo-promedio ${colorProm(prom)}">${r.notas.length ? prom.toFixed(1) : '—'}</div>
@@ -501,6 +513,13 @@ function render() {
         </div>
       </div>
     `;
+    // Separador entre ramos con notas y sin notas
+    if (fIdx === conNotas.length - 1 && sinNotas.length > 0) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'padding:8px 4px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-top:4px';
+      sep.textContent = 'Sin notas registradas';
+      container.appendChild(sep);
+    }
     container.appendChild(card);
   });
 
