@@ -157,7 +157,14 @@
 <!-- HEADER -->
 <header>
   <h1>Mis notas</h1>
-  <button class="btn-agregar-nota" onclick="abrirModal()">+ Agregar nota</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <select id="semSelect" onchange="renderRamos()" style="padding:5px 10px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);outline:none;">
+      <option value="1">Semestre 1</option>
+      <option value="2">Semestre 2</option>
+    </select>
+    <button class="btn-agregar-nota" onclick="abrirModal()">+ Nota</button>
+    <button class="btn-agregar-nota" style="background:var(--green)" onclick="agregarNuevoRamo()">+ Ramo</button>
+  </div>
 </header>
 
 <!-- NOTIF -->
@@ -206,15 +213,21 @@
 
     <label>Ramo</label>
     <select id="m-ramo">
-      <option>Matemáticas</option>
-      <option>Historia</option>
-      <option>Lenguaje</option>
-      <option>Física</option>
-      <option>Inglés</option>
-      <option>Química</option>
-      <option>Biología</option>
+      <option>Lengua y literatura</option>
+      <option>Matemática</option>
+      <option>Educación ciudadana</option>
       <option>Filosofía</option>
-      <option>Ed. Física</option>
+      <option>Ciencias para la ciudadanía</option>
+      <option>Inglés</option>
+      <option>Orientación</option>
+      <option>Artes visuales</option>
+      <option>Educación física y salud</option>
+      <option>Música</option>
+      <option>Ciencias de la salud</option>
+      <option>Probabilidades y estadística inferencial</option>
+      <option>Lectura y escritura especializada</option>
+      <option>Participación y argumentación en democracia</option>
+      <option>Biología molecular</option>
     </select>
 
     <div class="modal-row">
@@ -271,27 +284,25 @@
 <script>
 const NOTAS_KEY = 'martin_notas';
 
+// Ramos reales de Martín — 4° Medio (desde imagen Napsis)
 const ramosBase = [
-  { nombre:'Matemáticas', notas:[
-    { val:6.5, tipo:'prueba', desc:'Unidad funciones', fecha:'2025-03-10' },
-    { val:6.0, tipo:'tarea',  desc:'Ejercicios límites', fecha:'2025-03-20' },
-    { val:5.8, tipo:'control', desc:'Control rápido', fecha:'2025-04-01' },
-  ]},
-  { nombre:'Historia', notas:[
-    { val:6.2, tipo:'prueba', desc:'República parlamentaria', fecha:'2025-03-08' },
-    { val:5.5, tipo:'trabajo', desc:'Trabajo grupal', fecha:'2025-03-25' },
-    { val:5.8, tipo:'control', desc:'Control siglo XX', fecha:'2025-04-05' },
-  ]},
-  { nombre:'Lenguaje', notas:[
-    { val:5.2, tipo:'prueba', desc:'Comprensión lectora', fecha:'2025-03-12' },
-    { val:4.8, tipo:'tarea',  desc:'Análisis texto', fecha:'2025-03-28' },
-    { val:5.4, tipo:'control', desc:'Ortografía', fecha:'2025-04-03' },
-  ]},
-  { nombre:'Física', notas:[
-    { val:4.5, tipo:'prueba', desc:'Electromagnetismo', fecha:'2025-03-15' },
-    { val:3.8, tipo:'control', desc:'Control ondas', fecha:'2025-04-02' },
-    { val:4.2, tipo:'tarea', desc:'Ejercicios circuitos', fecha:'2025-04-08' },
-  ]},
+  { nombre:'Lengua y literatura', notas:[], semestre:1 },
+  { nombre:'Matemática', notas:[], semestre:1 },
+  { nombre:'Educación ciudadana', notas:[], semestre:1 },
+  { nombre:'Filosofía', notas:[], semestre:1 },
+  { nombre:'Ciencias para la ciudadanía', notas:[], semestre:1 },
+  { nombre:'Inglés', notas:[], semestre:1 },
+  { nombre:'Orientación', notas:[], semestre:1 },
+  { nombre:'Artes visuales', notas:[], semestre:1 },
+  { nombre:'Educación física y salud', notas:[], semestre:1 },
+  { nombre:'Música', notas:[], semestre:1 },
+  { nombre:'Ciencias de la salud', notas:[], semestre:1 },
+  { nombre:'Probabilidades y estadística inferencial', notas:[
+    { val:7.0, tipo:'prueba', desc:'PP 1', fecha:'2025-04-08' }
+  ], semestre:1 },
+  { nombre:'Lectura y escritura especializada', notas:[], semestre:1 },
+  { nombre:'Participación y argumentación en democracia', notas:[], semestre:1 },
+  { nombre:'Biología molecular', notas:[], semestre:1 },
 ];
 
 function cargarRamos() {
@@ -380,14 +391,60 @@ function sugerenciaIA(ramo, prom, tend, sem) {
 }
 
 // ── RENDER ──
+function renderRamos() { render(); }
+
+function editarNota(ramoIdx, notaIdx) {
+  const r = ramos[ramoIdx];
+  const n = r.notas[notaIdx];
+  const nuevaVal = prompt(`Editar nota de ${r.nombre}\nValor actual: ${n.val.toFixed(1)}\n\nNueva nota (1.0 - 7.0):`, n.val.toFixed(1));
+  if (nuevaVal === null) return;
+  const val = parseFloat(nuevaVal.replace(',','.'));
+  if (isNaN(val) || val < 1 || val > 7) { mostrarNotif('Nota inválida. Debe ser entre 1.0 y 7.0'); return; }
+  r.notas[notaIdx].val = val;
+  guardarRamos(ramos);
+  render();
+  mostrarNotif(`✅ Nota actualizada a ${val.toFixed(1)}`);
+  setTimeout(() => { const cards = document.querySelectorAll('.ramo-card'); if(cards[ramoIdx]) cards[ramoIdx].classList.add('open'); }, 50);
+}
+
+function eliminarNota(ramoIdx, notaIdx) {
+  if (!confirm('¿Eliminar esta nota?')) return;
+  ramos[ramoIdx].notas.splice(notaIdx, 1);
+  guardarRamos(ramos);
+  render();
+  mostrarNotif('🗑 Nota eliminada');
+  setTimeout(() => { const cards = document.querySelectorAll('.ramo-card'); if(cards[ramoIdx]) cards[ramoIdx].classList.add('open'); }, 50);
+}
+
+function agregarNuevoRamo() {
+  const nombre = prompt('Nombre del nuevo ramo:');
+  if (!nombre || !nombre.trim()) return;
+  const sem = parseInt(document.getElementById('semSelect')?.value||'1');
+  if (ramos.find(r=>r.nombre.toLowerCase()===nombre.trim().toLowerCase())) {
+    mostrarNotif('Ese ramo ya existe'); return;
+  }
+  ramos.push({ nombre: nombre.trim(), notas: [], semestre: sem });
+  guardarRamos(ramos);
+  render();
+  mostrarNotif(`✅ Ramo "${nombre.trim()}" agregado al semestre ${sem}`);
+}
+
+function renderRamos() { render(); }
+
 function render() {
+  const semActivo = parseInt(document.getElementById('semSelect')?.value||'1');
   const container = document.getElementById('ramosContainer');
   container.innerHTML = '';
 
   let totalNotas = 0, sumaProm = 0;
   let cntVerde = 0, cntAmarillo = 0, cntRojo = 0;
 
-  ramos.forEach((r, idx) => {
+  // Filtrar por semestre
+  const ramosFiltrados = ramos.filter(r => (r.semestre||1) === semActivo);
+  const ramoIdxMap = ramosFiltrados.map(r => ramos.indexOf(r));
+
+  ramosFiltrados.forEach((r, fIdx) => {
+    const idx = ramoIdxMap[fIdx];
     const prom = promedio(r.notas);
     const tend = tendencia(r.notas);
     const sem  = semaforo(prom);
@@ -452,11 +509,11 @@ function render() {
 
         <div class="notas-lista">
           ${sorted.map((n,i) => `
-            <div class="nota-item">
+            <div class="nota-item" id="ni-${idx}-${i}">
               <span class="nota-tipo t-${n.tipo}">${n.tipo.charAt(0).toUpperCase()+n.tipo.slice(1)}</span>
               <span class="nota-desc">${n.desc || '—'}</span>
               <span class="nota-fecha">${formatFecha(n.fecha)}</span>
-              <span class="nota-val ${colorNota(n.val)}">${n.val.toFixed(1)}</span>
+              <span class="nota-val ${colorNota(n.val)}" style="cursor:pointer" onclick="editarNota(${idx},${i})" title="Clic para editar">${n.val.toFixed(1)} ✏️</span>
             </div>
           `).join('')}
         </div>
@@ -479,6 +536,15 @@ function render() {
   // Promedio general
   const promGeneral = sumaProm / ramos.length;
   document.getElementById('promedioGeneral').textContent = promGeneral.toFixed(1);
+  // Agregar botón para agregar ramo desde la lista vacía
+  if(ramosFiltrados.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">
+      No hay ramos en este semestre. <span style="color:var(--blue);cursor:pointer;font-weight:500" onclick="agregarNuevoRamo()">+ Agregar ramo</span>
+    </div>`;
+  }
+
+  const promGeneral = ramosFiltrados.length ? (sumaProm/ramosFiltrados.length) : 0;
+  document.getElementById('promedioGeneral').textContent = promGeneral > 0 ? promGeneral.toFixed(1) : '—';
   document.getElementById('cntVerde').textContent = cntVerde;
   document.getElementById('cntAmarillo').textContent = cntAmarillo;
   document.getElementById('cntRojo').textContent = cntRojo;
