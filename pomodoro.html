@@ -482,6 +482,38 @@
     completarSesion();
   }
 
+  // ── SONIDO CON WEB AUDIO API ──
+  function tocarSonido(tipo) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (tipo === 'foco') {
+        // 3 beeps ascendentes — logro completado
+        [0, 0.15, 0.3].forEach((t, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = 440 + (i * 110);
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + t);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+          osc.start(ctx.currentTime + t);
+          osc.stop(ctx.currentTime + t + 0.3);
+        });
+      } else {
+        // 1 beep suave — descanso terminado
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 528;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.8);
+      }
+    } catch(e) { console.log('Audio no disponible:', e); }
+  }
+
   function completarSesion() {
     document.getElementById('btnMain').classList.remove('running');
     document.getElementById('iconPlay').style.display = 'block';
@@ -492,15 +524,29 @@
       minutosHoy += cfg.foco;
       historial.push({ fecha: hoyStr, ramo: tareaActiva, dur: cfg.foco, completado: true });
       localStorage.setItem(HIST_KEY, JSON.stringify(historial));
+      tocarSonido('foco');
       mostrarNotif('🎉 ¡Pomodoro completado! Descansa un poco');
+      // Notificación del sistema si está permitida
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('¡Pomodoro completado! 🎉', {
+          body: `${cfg.foco} minutos de foco. Descansa un poco.`,
+          icon: '/martin-organizer/icon-192.png'
+        });
+      }
       actualizarStats();
       renderHistorial();
-      // Auto-cambiar a descanso
       setTimeout(() => {
         cambiarModo(pomodorosHoy % 4 === 0 ? 'largo' : 'corto');
       }, 1500);
     } else {
+      tocarSonido('descanso');
       mostrarNotif('💪 ¡Descanso terminado! A seguir estudiando');
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('¡Descanso terminado! 💪', {
+          body: 'Hora de volver a estudiar.',
+          icon: '/martin-organizer/icon-192.png'
+        });
+      }
       setTimeout(() => cambiarModo('foco'), 1500);
     }
   }
