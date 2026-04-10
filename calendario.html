@@ -209,6 +209,10 @@ const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 const MESES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const DIAS_N=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 let hoy=new Date(), viewDate=new Date(), diaSeleccionado=new Date(), vista='dia';
+// Fix zona horaria — asegurar que la fecha inicial sea hoy correctamente
+diaSeleccionado = new Date(new Date().toISOString().split('T')[0]+'T12:00:00');
+hoy = new Date(new Date().toISOString().split('T')[0]+'T12:00:00');
+viewDate = new Date(new Date().toISOString().split('T')[0]+'T12:00:00');
 let eventoExpandido=null;
 
 function fmt(d){return d.toISOString().split('T')[0];}
@@ -249,7 +253,12 @@ function renderCalendario(){
   for(let d=1;d<=resto;d++){const day=document.createElement('div');day.className='cal-day otro-mes';day.innerHTML=`<div class="day-num">${d}</div>`;grid.appendChild(day);}
 }
 
-function seleccionarDia(fecha){diaSeleccionado=new Date(fecha+'T12:00:00');renderCalendario();renderEventos();}
+function seleccionarDia(fecha){
+  diaSeleccionado=new Date(fecha+'T12:00:00');
+  vista='dia';
+  document.querySelectorAll('.vista-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  renderCalendario();renderEventos();
+}
 function cambiarMes(d){viewDate.setMonth(viewDate.getMonth()+d);renderCalendario();}
 function irHoy(){viewDate=new Date();diaSeleccionado=new Date();renderCalendario();renderEventos();}
 function cambiarVista(v,btn){vista=v;document.querySelectorAll('.vista-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');eventoExpandido=null;renderEventos();}
