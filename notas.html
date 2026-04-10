@@ -393,62 +393,33 @@ function sugerenciaIA(ramo, prom, tend, sem) {
 // ── RENDER ──
 function renderRamos() { render(); }
 
-function editarNota(ramoIdx, notaIdx) {
-  const r = ramos[ramoIdx];
-  const n = r.notas[notaIdx];
-  const nuevaVal = prompt(`Editar nota de ${r.nombre}\nValor actual: ${n.val.toFixed(1)}\n\nNueva nota (1.0 - 7.0):`, n.val.toFixed(1));
-  if (nuevaVal === null) return;
-  const val = parseFloat(nuevaVal.replace(',','.'));
-  if (isNaN(val) || val < 1 || val > 7) { mostrarNotif('Nota inválida. Debe ser entre 1.0 y 7.0'); return; }
-  r.notas[notaIdx].val = val;
-  guardarRamos(ramos);
-  render();
-  mostrarNotif(`✅ Nota actualizada a ${val.toFixed(1)}`);
-  setTimeout(() => { const cards = document.querySelectorAll('.ramo-card'); if(cards[ramoIdx]) cards[ramoIdx].classList.add('open'); }, 50);
-}
-
-function eliminarNota(ramoIdx, notaIdx) {
-  if (!confirm('¿Eliminar esta nota?')) return;
-  ramos[ramoIdx].notas.splice(notaIdx, 1);
-  guardarRamos(ramos);
-  render();
-  mostrarNotif('🗑 Nota eliminada');
-  setTimeout(() => { const cards = document.querySelectorAll('.ramo-card'); if(cards[ramoIdx]) cards[ramoIdx].classList.add('open'); }, 50);
-}
-
-function agregarNuevoRamo() {
-  const nombre = prompt('Nombre del nuevo ramo:');
-  if (!nombre || !nombre.trim()) return;
-  const sem = parseInt(document.getElementById('semSelect')?.value||'1');
-  if (ramos.find(r=>r.nombre.toLowerCase()===nombre.trim().toLowerCase())) {
-    mostrarNotif('Ese ramo ya existe'); return;
-  }
-  ramos.push({ nombre: nombre.trim(), notas: [], semestre: sem });
-  guardarRamos(ramos);
-  render();
-  mostrarNotif(`✅ Ramo "${nombre.trim()}" agregado al semestre ${sem}`);
-}
-
-function renderRamos() { render(); }
-
 function render() {
-  const semActivo = parseInt(document.getElementById('semSelect')?.value||'1');
+  const semActivo = parseInt(document.getElementById('semSelect')?.value || '1');
   const container = document.getElementById('ramosContainer');
   container.innerHTML = '';
 
-  let totalNotas = 0, sumaProm = 0;
-  let cntVerde = 0, cntAmarillo = 0, cntRojo = 0;
+  let sumaProm = 0, cntVerde = 0, cntAmarillo = 0, cntRojo = 0;
+  const ramosFiltrados = ramos.filter(r => (r.semestre || 1) === semActivo);
 
-  // Filtrar por semestre
-  const ramosFiltrados = ramos.filter(r => (r.semestre||1) === semActivo);
-  const ramoIdxMap = ramosFiltrados.map(r => ramos.indexOf(r));
+  if (ramosFiltrados.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">
+      No hay ramos en este semestre.
+      <span style="color:var(--blue);cursor:pointer;font-weight:500" onclick="agregarNuevoRamo()">+ Agregar ramo</span>
+    </div>`;
+    document.getElementById('promedioGeneral').textContent = '—';
+    document.getElementById('cntVerde').textContent = 0;
+    document.getElementById('cntAmarillo').textContent = 0;
+    document.getElementById('cntRojo').textContent = 0;
+    document.getElementById('riesgoBadge').style.display = 'none';
+    return;
+  }
 
   ramosFiltrados.forEach((r, fIdx) => {
-    const idx = ramoIdxMap[fIdx];
+    const globalIdx = ramos.indexOf(r);
     const prom = promedio(r.notas);
     const tend = tendencia(r.notas);
     const sem  = semaforo(prom);
-    totalNotas += r.notas.length;
+
     sumaProm += prom;
     if (sem === 'verde') cntVerde++;
     else if (sem === 'amarillo') cntAmarillo++;
@@ -457,7 +428,6 @@ function render() {
     const sug = sugerenciaIA(r.nombre, prom, tend, sem);
     const sorted = [...r.notas].sort((a,b) => new Date(b.fecha)-new Date(a.fecha));
 
-    // Mini gráfico de barras
     const maxVal = 7;
     const barsHTML = sorted.slice().reverse().map((n,i) => {
       const h = Math.round((n.val / maxVal) * 100);
@@ -469,82 +439,71 @@ function render() {
       </div>`;
     }).join('');
 
+    const notasHTML = sorted.map((n,i) => `
+      <div class="nota-item">
+        <span class="nota-tipo t-${n.tipo}">${n.tipo.charAt(0).toUpperCase()+n.tipo.slice(1)}</span>
+        <span class="nota-desc">${n.desc || '—'}</span>
+        <span class="nota-fecha">${formatFecha(n.fecha)}</span>
+        <span class="nota-val ${colorNota(n.val)}" style="cursor:pointer" onclick="editarNota(${globalIdx},${i})" title="Clic para editar">${n.val.toFixed(1)} ✏️</span>
+      </div>`).join('');
+
+    const sugHTML = sug ? `
+      <div class="sugerencia-ia ${sug.tipo === 'alerta' ? 'alerta' : sug.tipo === 'warning' ? 'warning' : ''}">
+        <div class="ia-icon">${sug.icono}</div>
+        <div class="ia-texto">
+          <strong>${sug.titulo}</strong>
+          ${sug.texto}
+          ${sug.acciones.length ? `<div class="ia-action">
+            ${sug.acciones.map(a => `<button class="ia-btn ia-btn-${a.tipo}" onclick="accionIA('${a.label}', ${globalIdx})">${a.label}</button>`).join('')}
+          </div>` : ''}
+        </div>
+      </div>` : '';
+
     const card = document.createElement('div');
     card.className = 'ramo-card';
-    card.setAttribute('data-idx', idx);
+    card.setAttribute('data-gidx', globalIdx);
 
     card.innerHTML = `
-      <div class="ramo-header" onclick="toggleRamo(${idx})">
+      <div class="ramo-header" onclick="toggleRamo(this)">
         <div class="semaforo-dot ${colorSem(sem)}"></div>
         <div class="ramo-info">
           <div class="ramo-nombre">${r.nombre}</div>
           <div class="ramo-meta">${r.notas.length} evaluaciones · ${tend === '↑' ? 'Subiendo' : tend === '↓' ? 'Bajando' : 'Estable'}</div>
         </div>
         <div class="ramo-right">
-          <div class="ramo-promedio ${colorProm(prom)}">${prom.toFixed(1)}</div>
-          <div class="ramo-tendencia">${tend}</div>
+          <div class="ramo-promedio ${colorProm(prom)}">${r.notas.length ? prom.toFixed(1) : '—'}</div>
+          <div class="ramo-tendencia">${r.notas.length ? tend : ''}</div>
         </div>
         <div class="ramo-toggle">
           <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </div>
       <div class="ramo-detail">
-        ${sug ? `
-          <div class="sugerencia-ia ${sug.tipo === 'alerta' ? 'alerta' : sug.tipo === 'warning' ? 'warning' : ''}">
-            <div class="ia-icon">${sug.icono}</div>
-            <div class="ia-texto">
-              <strong>${sug.titulo}</strong>
-              ${sug.texto}
-              ${sug.acciones.length ? `<div class="ia-action">
-                ${sug.acciones.map(a => `<button class="ia-btn ia-btn-${a.tipo}" onclick="accionIA('${a.label}', ${idx})">${a.label}</button>`).join('')}
-              </div>` : ''}
-            </div>
+        ${sugHTML}
+        ${r.notas.length > 0 ? `
+          <div class="mini-chart">
+            <div class="chart-label">Evolución de notas</div>
+            <div class="chart-bars">${barsHTML}</div>
           </div>
-        ` : ''}
-
-        <div class="mini-chart">
-          <div class="chart-label">Evolución de notas (más antigua → más reciente)</div>
-          <div class="chart-bars">${barsHTML}</div>
-        </div>
-
-        <div class="notas-lista">
-          ${sorted.map((n,i) => `
-            <div class="nota-item" id="ni-${idx}-${i}">
-              <span class="nota-tipo t-${n.tipo}">${n.tipo.charAt(0).toUpperCase()+n.tipo.slice(1)}</span>
-              <span class="nota-desc">${n.desc || '—'}</span>
-              <span class="nota-fecha">${formatFecha(n.fecha)}</span>
-              <span class="nota-val ${colorNota(n.val)}" style="cursor:pointer" onclick="editarNota(${idx},${i})" title="Clic para editar">${n.val.toFixed(1)} ✏️</span>
-            </div>
-          `).join('')}
-        </div>
-
+          <div class="notas-lista">${notasHTML}</div>` : `
+          <div style="color:var(--muted);font-size:13px;padding:.5rem 0">Sin notas registradas aún.</div>`}
         <div class="agregar-nota-row">
-          <select class="select-tipo-nota" id="tipo-${idx}">
+          <select class="select-tipo-nota" id="tipo-${globalIdx}">
             <option value="prueba">Prueba</option>
             <option value="control">Control</option>
             <option value="tarea">Tarea</option>
             <option value="trabajo">Trabajo</option>
           </select>
-          <input class="input-nota" type="number" min="1" max="7" step="0.1" placeholder="5.5" id="nota-${idx}">
-          <button class="btn-add-nota" onclick="agregarNotaRapida(${idx})">+</button>
+          <input class="input-nota" type="number" min="1" max="7" step="0.1" placeholder="5.5" id="nota-${globalIdx}">
+          <button class="btn-add-nota" onclick="agregarNotaRapida(${globalIdx})">+</button>
         </div>
       </div>
     `;
     container.appendChild(card);
   });
 
-  // Promedio general
-  const promGeneral = sumaProm / ramos.length;
+  const promGeneral = sumaProm / ramosFiltrados.length;
   document.getElementById('promedioGeneral').textContent = promGeneral.toFixed(1);
-  // Agregar botón para agregar ramo desde la lista vacía
-  if(ramosFiltrados.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">
-      No hay ramos en este semestre. <span style="color:var(--blue);cursor:pointer;font-weight:500" onclick="agregarNuevoRamo()">+ Agregar ramo</span>
-    </div>`;
-  }
-
-  const promGeneral = ramosFiltrados.length ? (sumaProm/ramosFiltrados.length) : 0;
-  document.getElementById('promedioGeneral').textContent = promGeneral > 0 ? promGeneral.toFixed(1) : '—';
   document.getElementById('cntVerde').textContent = cntVerde;
   document.getElementById('cntAmarillo').textContent = cntAmarillo;
   document.getElementById('cntRojo').textContent = cntRojo;
@@ -558,9 +517,8 @@ function render() {
   }
 }
 
-function toggleRamo(idx) {
-  const cards = document.querySelectorAll('.ramo-card');
-  const card = cards[idx];
+function toggleRamo(headerEl) {
+  const card = headerEl.closest('.ramo-card');
   card.classList.toggle('open');
 }
 
