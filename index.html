@@ -323,6 +323,11 @@
     document.getElementById('errorMsg').classList.add('hidden');
   }
 
+  // Redirigir a onboarding si es la primera vez
+  if (!localStorage.getItem('martin_onboarding')) {
+    window.location.href = 'onboarding.html';
+  }
+
   // Soporte teclado físico (computador)
   document.addEventListener('keydown', (e) => {
     if (e.key >= '0' && e.key <= '9') pressKey(e.key);
