@@ -629,6 +629,7 @@
     };
     tareas.unshift(nueva);
     guardarTareas(tareas);
+    sincronizarConCalendario(nueva);
     input.value = '';
     filtroActivo = 'todas';
     document.querySelectorAll('.filtro-btn').forEach((b,i) => b.classList.toggle('active', i===0));
@@ -646,6 +647,32 @@
   function cerrarModalDirecto() {
     document.getElementById('modalOverlay').classList.remove('visible');
   }
+  function sincronizarConCalendario(tarea) {
+    // Solo sincronizar pruebas, trabajos y controles — no tareas simples
+    if (!['prueba','trabajo','control'].includes(tarea.tipo)) return;
+    if (!tarea.fecha) return;
+    try {
+      const eventos = JSON.parse(localStorage.getItem('martin_eventos')) || [];
+      // Evitar duplicados por id
+      const yaExiste = eventos.find(e => e.tareaId === tarea.id);
+      if (yaExiste) return;
+      const tipoEvento = tarea.tipo === 'prueba' ? 'prueba' : 'estudio';
+      const horaDefault = tarea.tipo === 'prueba' ? '08:00' : '16:00';
+      const horaFin = tarea.tipo === 'prueba' ? '10:00' : '18:00';
+      eventos.push({
+        id: Date.now() + Math.random(),
+        tareaId: tarea.id,
+        nombre: `${tarea.tipo.charAt(0).toUpperCase()+tarea.tipo.slice(1)} — ${tarea.ramo}: ${tarea.nombre}`,
+        tipo: tipoEvento,
+        fecha: tarea.fecha,
+        inicio: horaDefault,
+        fin: horaFin,
+        notas: tarea.notas || ''
+      });
+      localStorage.setItem('martin_eventos', JSON.stringify(eventos));
+    } catch(e) { console.error('Error sincronizando calendario:', e); }
+  }
+
   function guardarModal() {
     const nombre = document.getElementById('m-nombre').value.trim();
     if (!nombre) { document.getElementById('m-nombre').focus(); return; }
@@ -661,6 +688,7 @@
     };
     tareas.unshift(nueva);
     guardarTareas(tareas);
+    sincronizarConCalendario(nueva);
     cerrarModalDirecto();
     document.getElementById('m-nombre').value = '';
     document.getElementById('m-notas').value = '';
@@ -729,6 +757,7 @@
     };
     tareas.unshift(nueva);
     guardarTareas(tareas);
+    sincronizarConCalendario(nueva);
 
     document.getElementById('transcriptText').textContent = `✅ Agregada: "${nueva.nombre}"`;
     document.getElementById('transcriptHint').textContent = `${tipo} de ${ramo} · ${dia}`;
