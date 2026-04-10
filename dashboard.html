@@ -351,7 +351,10 @@ function procesarVoz(texto) {
   const ramosL=['física','matemáticas','matemática','historia','lenguaje','inglés','química','biología','filosofía'];
   const diasL=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
   const ramo=ramosL.find(r=>t.includes(r))||'ramo';
-  const dia=diasL.find(d=>t.includes(d))||'próximamente';
+  const dia=t.includes('mañana') ? 'mañana' :
+             t.includes('pasado') ? 'pasado mañana' :
+             t.includes('hoy') ? 'hoy' :
+             diasL.find(d=>t.includes(d))||'hoy';
   let tipo='tarea';
   if(t.includes('prueba')||t.includes('examen')) tipo='prueba';
   else if(t.includes('trabajo')) tipo='trabajo';
@@ -361,9 +364,12 @@ function procesarVoz(texto) {
   } else if(t.includes('pomodoro')){
     togglePomo(); respuesta='⏱ Pomodoro iniciado';
   } else {
-    const dIdx=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'].indexOf(dia);
+    const diasSem=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const dIdx=diasSem.indexOf(dia);
     let fecha=hoyStr();
-    if(dIdx!==-1){const h=new Date();let diff=dIdx-h.getDay();if(diff<=0)diff+=7;const td=new Date(h);td.setDate(h.getDate()+diff);fecha=td.toISOString().split('T')[0];}
+    if(dia==='mañana'){const m=new Date();m.setDate(m.getDate()+1);fecha=m.toISOString().split('T')[0];}
+    else if(dia==='pasado mañana'){const p=new Date();p.setDate(p.getDate()+2);fecha=p.toISOString().split('T')[0];}
+    else if(dIdx!==-1){const h=new Date();let diff=dIdx-h.getDay();if(diff<=0)diff+=7;const td=new Date(h);td.setDate(h.getDate()+diff);fecha=td.toISOString().split('T')[0];}
     const tareas=getTareas();
     tareas.unshift({id:Date.now(),nombre:texto.trim().charAt(0).toUpperCase()+texto.trim().slice(1),ramo:ramo.charAt(0).toUpperCase()+ramo.slice(1),tipo,fecha,urgencia:'normal',notas:'',done:false});
     localStorage.setItem('martin_tareas',JSON.stringify(tareas));
