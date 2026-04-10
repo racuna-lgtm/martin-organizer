@@ -120,7 +120,7 @@
     <div class="metric-card">
       <span class="label">Tareas pendientes</span>
       <span class="value" id="cntPendientes">—</span>
-      <span class="badge badge-amber">Para hoy</span>
+      <span class="badge badge-amber" id="badgeTareasHoy">Pendientes</span>
     </div>
     <div class="metric-card">
       <span class="label">Próxima prueba</span>
@@ -224,6 +224,15 @@ function renderTareas() {
   });
   const list = document.getElementById('taskList');
   document.getElementById('cntPendientes').textContent = pendientes.length;
+  // Badge dinámico según cuándo vencen
+  const badge = document.getElementById('badgeTareasHoy');
+  if (badge) {
+    const vencidas = pendientes.filter(t=>t.fecha<hoy).length;
+    const deHoy = pendientes.filter(t=>t.fecha===hoy).length;
+    if (vencidas > 0) { badge.textContent = `${vencidas} vencida${vencidas>1?'s':''}`; badge.className='badge badge-red'; }
+    else if (deHoy > 0) { badge.textContent = 'Para hoy'; badge.className='badge badge-amber'; }
+    else { badge.textContent = 'Esta semana'; badge.className='badge badge-blue'; }
+  }
   if (!pendientes.length) { list.innerHTML=`<div class="empty-msg">¡Sin tareas pendientes! 🎉</div>`; return; }
   const tagC={prueba:'tag-prueba',tarea:'tag-tarea',trabajo:'tag-trabajo',control:'tag-control'};
   const tagL={prueba:'Prueba',tarea:'Tarea',trabajo:'Trabajo',control:'Control'};
@@ -351,8 +360,9 @@ function procesarVoz(texto) {
   const ramosL=['física','matemáticas','matemática','historia','lenguaje','inglés','química','biología','filosofía'];
   const diasL=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
   const ramo=ramosL.find(r=>t.includes(r))||'ramo';
-  const dia=t.includes('mañana') ? 'mañana' :
-             t.includes('pasado') ? 'pasado mañana' :
+  // IMPORTANTE: pasado mañana ANTES que mañana
+  const dia=t.includes('pasado mañana')||t.includes('pasado manana') ? 'pasado mañana' :
+             t.includes('mañana')||t.includes('manana') ? 'mañana' :
              t.includes('hoy') ? 'hoy' :
              diasL.find(d=>t.includes(d))||'hoy';
   let tipo='tarea';
@@ -367,11 +377,21 @@ function procesarVoz(texto) {
     const diasSem=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
     const dIdx=diasSem.indexOf(dia);
     let fecha=hoyStr();
-    if(dia==='mañana'){const m=new Date();m.setDate(m.getDate()+1);fecha=m.toISOString().split('T')[0];}
-    else if(dia==='pasado mañana'){const p=new Date();p.setDate(p.getDate()+2);fecha=p.toISOString().split('T')[0];}
-    else if(dIdx!==-1){const h=new Date();let diff=dIdx-h.getDay();if(diff<=0)diff+=7;const td=new Date(h);td.setDate(h.getDate()+diff);fecha=td.toISOString().split('T')[0];}
+    const hoyPts=hoyStr().split('-');
+    const hoyBase=new Date(parseInt(hoyPts[0]),parseInt(hoyPts[1])-1,parseInt(hoyPts[2]));
+    const fmtLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(dia==='mañana'){const m=new Date(hoyBase);m.setDate(hoyBase.getDate()+1);fecha=fmtLocal(m);}
+    else if(dia==='pasado mañana'){const p=new Date(hoyBase);p.setDate(hoyBase.getDate()+2);fecha=fmtLocal(p);}
+    else if(dIdx!==-1){const h=new Date(hoyBase);let diff=dIdx-h.getDay();if(diff<=0)diff+=7;const td=new Date(h);td.setDate(h.getDate()+diff);fecha=fmtLocal(td);}
     const tareas=getTareas();
-    tareas.unshift({id:Date.now(),nombre:texto.trim().charAt(0).toUpperCase()+texto.trim().slice(1),ramo:ramo.charAt(0).toUpperCase()+ramo.slice(1),tipo,fecha,urgencia:'normal',notas:'',done:false});
+    const rdisplay=ramo.charAt(0).toUpperCase()+ramo.slice(1);
+    const nvNombre=tipo==='prueba'?`Prueba de ${rdisplay}`:
+                   tipo==='control'?`Control de ${rdisplay}`:
+                   tipo==='trabajo'?`Trabajo de ${rdisplay}`:
+                   t.includes('estudiar')?`Estudiar ${rdisplay!=='Ramo'?rdisplay:texto.trim().slice(0,25)}`:
+                   texto.trim().charAt(0).toUpperCase()+texto.trim().slice(0,50);
+    const nvUrg=t.includes('urgente')?'urgente':dia==='mañana'||dia==='pasado mañana'?'media':'normal';
+    tareas.unshift({id:Date.now(),nombre:nvNombre,ramo:rdisplay,tipo,fecha,urgencia:nvUrg,notas:texto.trim(),done:false});
     localStorage.setItem('martin_tareas',JSON.stringify(tareas));
     renderTareas();
     respuesta=`✅ ${tipo.charAt(0).toUpperCase()+tipo.slice(1)} de ${ramo} anotada para el ${dia}`;
