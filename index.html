@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martín — Organizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0090F8;
+    --blue-soft: #E6F1FB;
+    --green: #00C896;
+    --green-soft: #E1F5EE;
+    --amber: #FFB020;
+    --amber-soft: #FAEEDA;
+    --bg: #F5F7FA;
+    --white: #FFFFFF;
+    --text: #2A2A2A;
+    --muted: #8890A0;
+    --border: #E2E5EC;
+    --danger: #FF4D4D;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow: hidden;
+  }
+
+  /* Decoración de fondo */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -120px; right: -120px;
+    width: 360px; height: 360px;
+    border-radius: 50%;
+    border: 2px solid var(--blue);
+    opacity: 0.08;
+    pointer-events: none;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 2px solid var(--blue);
+    opacity: 0.12;
+    pointer-events: none;
+  }
+  .deco-bottom {
+    position: fixed;
+    bottom: -80px; left: -80px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    border: 2px solid var(--blue);
+    opacity: 0.07;
+    pointer-events: none;
+  }
+  .deco-bottom2 {
+    position: fixed;
+    bottom: -30px; left: -30px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 2px solid var(--blue);
+    opacity: 0.11;
+    pointer-events: none;
+  }
+
+  /* Card principal */
+  .card {
+    background: var(--white);
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.75rem;
+    position: relative;
+    animation: slideUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Avatar / saludo */
+  .avatar {
+    width: 64px; height: 64px;
+    background: var(--blue-soft);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 26px; font-weight: 800;
+    color: var(--blue);
+    letter-spacing: -1px;
+  }
+
+  .greeting {
+    text-align: center;
+  }
+  .greeting h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .greeting p {
+    font-size: 14px; color: var(--muted);
+    margin-top: 4px; font-weight: 300;
+  }
+
+  /* Puntos PIN */
+  .pin-dots {
+    display: flex; gap: 14px;
+    align-items: center; justify-content: center;
+  }
+  .dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: transparent;
+    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .dot.filled {
+    background: var(--blue);
+    border-color: var(--blue);
+    transform: scale(1.15);
+  }
+  .dot.error {
+    background: var(--danger);
+    border-color: var(--danger);
+    animation: shake 0.4s ease;
+  }
+  .dot.success {
+    background: var(--green);
+    border-color: var(--green);
+    transform: scale(1.2);
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+
+  /* Error msg */
+  .error-msg {
+    font-size: 13px; color: var(--danger);
+    text-align: center; height: 18px;
+    transition: opacity 0.2s;
+    font-weight: 500;
+  }
+  .error-msg.hidden { opacity: 0; }
+
+  /* Teclado numérico */
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+  }
+
+  .key {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    height: 60px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--text);
+    transition: all 0.12s ease;
+    display: flex; align-items: center; justify-content: center;
+    user-select: none;
+  }
+  .key:hover { background: var(--blue-soft); border-color: var(--blue); color: var(--blue); }
+  .key:active { transform: scale(0.93); background: var(--blue); color: white; border-color: var(--blue); }
+
+  .key.zero { grid-column: 2; }
+
+  .key.delete {
+    background: transparent;
+    border-color: transparent;
+    font-size: 20px;
+    color: var(--muted);
+  }
+  .key.delete:hover { background: var(--amber-soft); border-color: var(--amber); color: var(--amber); }
+  .key.delete:active { background: var(--amber); color: white; transform: scale(0.93); }
+
+  /* Footer */
+  .footer-hint {
+    font-size: 12px; color: var(--muted);
+    text-align: center; font-weight: 300;
+  }
+  .footer-hint span { color: var(--blue); font-weight: 500; }
+
+  /* Animación éxito */
+  @keyframes successPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(0,200,150,0.4); }
+    70%  { box-shadow: 0 0 0 16px rgba(0,200,150,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,200,150,0); }
+  }
+  .card.success-anim { animation: successPulse 0.6s ease; }
+</style>
+</head>
+<body>
+
+<div class="deco-bottom"></div>
+<div class="deco-bottom2"></div>
+
+<div class="card" id="card">
+
+  <div class="avatar">M</div>
+
+  <div class="greeting">
+    <h1>Hola, Martín 👋</h1>
+    <p>Ingresa tu PIN para continuar</p>
+  </div>
+
+  <div class="pin-dots">
+    <div class="dot" id="d0"></div>
+    <div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div>
+    <div class="dot" id="d3"></div>
+  </div>
+
+  <div class="error-msg hidden" id="errorMsg">PIN incorrecto, intenta de nuevo</div>
+
+  <div class="keypad">
+    <button class="key" onclick="pressKey('1')">1</button>
+    <button class="key" onclick="pressKey('2')">2</button>
+    <button class="key" onclick="pressKey('3')">3</button>
+    <button class="key" onclick="pressKey('4')">4</button>
+    <button class="key" onclick="pressKey('5')">5</button>
+    <button class="key" onclick="pressKey('6')">6</button>
+    <button class="key" onclick="pressKey('7')">7</button>
+    <button class="key" onclick="pressKey('8')">8</button>
+    <button class="key" onclick="pressKey('9')">9</button>
+    <div></div>
+    <button class="key zero" onclick="pressKey('0')">0</button>
+    <button class="key delete" onclick="deleteLast()">⌫</button>
+  </div>
+
+  <p class="footer-hint">PIN por defecto: <span>1234</span> — cámbialo cuando quieras</p>
+
+</div>
+
+<script>
+  const PIN_KEY = 'martin_pin';
+  const DASH = 'dashboard.html';
+
+  function getPin() {
+    return localStorage.getItem(PIN_KEY) || '1234';
+  }
+
+  let current = '';
+
+  function pressKey(digit) {
+    if (current.length >= 4) return;
+    current += digit;
+    updateDots();
+    if (current.length === 4) {
+      setTimeout(checkPin, 200);
+    }
+  }
+
+  function deleteLast() {
+    if (current.length === 0) return;
+    current = current.slice(0, -1);
+    updateDots();
+    clearError();
+  }
+
+  function updateDots() {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('d' + i);
+      dot.className = 'dot' + (i < current.length ? ' filled' : '');
+    }
+  }
+
+  function checkPin() {
+    if (current === getPin()) {
+      showSuccess();
+    } else {
+      showError();
+    }
+  }
+
+  function showSuccess() {
+    for (let i = 0; i < 4; i++) {
+      document.getElementById('d' + i).className = 'dot success';
+    }
+    document.getElementById('card').classList.add('success-anim');
+    setTimeout(() => {
+      window.location.href = DASH;
+    }, 600);
+  }
+
+  function showError() {
+    for (let i = 0; i < 4; i++) {
+      document.getElementById('d' + i).className = 'dot error';
+    }
+    document.getElementById('errorMsg').classList.remove('hidden');
+    setTimeout(() => {
+      current = '';
+      updateDots();
+      clearError();
+    }, 1000);
+  }
+
+  function clearError() {
+    document.getElementById('errorMsg').classList.add('hidden');
+  }
+
+  // Soporte teclado físico (computador)
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') pressKey(e.key);
+    if (e.key === 'Backspace') deleteLast();
+  });
+</script>
+</body>
+</html>
