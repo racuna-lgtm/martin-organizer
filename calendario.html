@@ -16,42 +16,29 @@
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { font-family:'DM Sans',sans-serif; background:var(--bg); min-height:100dvh; padding-bottom:90px; color:var(--text); }
-
-  /* HEADER */
   header { background:var(--white); border-bottom:1px solid var(--border); padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
-  header h1 { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; letter-spacing:-0.3px; }
-  .btn-nuevo-evento { display:flex; align-items:center; gap:6px; background:var(--blue); border:none; border-radius:20px; padding:6px 14px; font-size:13px; font-weight:500; color:white; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
-  .btn-nuevo-evento:active { transform:scale(0.95); }
-
-  /* VOZ BAR */
+  header h1 { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; }
+  .btn-nuevo { display:flex; align-items:center; gap:6px; background:var(--blue); border:none; border-radius:20px; padding:6px 14px; font-size:13px; font-weight:500; color:white; cursor:pointer; font-family:'DM Sans',sans-serif; }
+  .btn-nuevo:active { transform:scale(0.95); }
   .voz-bar { padding:0.75rem 1.25rem 0; }
   .voz-btn { width:100%; background:var(--blue); border:none; border-radius:14px; padding:0.875rem 1.25rem; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
-  .voz-btn:active { transform:scale(0.98); }
   .voz-btn.listening { background:var(--green); animation:pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,0.4)} 50%{box-shadow:0 0 0 8px rgba(0,200,150,0)} }
   .voz-icon { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .voz-icon svg { width:16px; height:16px; fill:white; }
-  .voz-texts { text-align:left; }
   .voz-texts strong { display:block; font-size:13px; font-weight:500; color:white; }
-  .voz-texts span { font-size:11px; color:rgba(255,255,255,0.75); font-weight:300; }
-
-  .transcript-box { margin:0.5rem 1.25rem 0; background:var(--white); border:1px solid var(--blue); border-radius:12px; padding:0.75rem 1rem; font-size:13px; color:var(--text); display:none; }
+  .voz-texts span { font-size:11px; color:rgba(255,255,255,0.75); }
+  .transcript-box { margin:0.5rem 1.25rem 0; background:var(--white); border:1px solid var(--blue); border-radius:12px; padding:0.75rem 1rem; font-size:13px; display:none; }
   .transcript-box.visible { display:block; }
-
-  /* NAVEGACIÓN MES */
   .mes-nav { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem 0; }
-  .mes-label { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; letter-spacing:-0.3px; }
+  .mes-label { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; }
   .mes-btns { display:flex; gap:6px; }
-  .mes-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--white); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; font-size:14px; }
+  .mes-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--white); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all 0.12s; }
   .mes-btn:hover { border-color:var(--blue); color:var(--blue); }
-
-  /* GRID SEMANA DÍAS */
-  .dias-semana { display:grid; grid-template-columns:repeat(7,1fr); padding:0.75rem 1.25rem 0; gap:2px; }
+  .dias-semana { display:grid; grid-template-columns:repeat(7,1fr); padding:0.75rem 1.25rem 0; }
   .dia-lbl { text-align:center; font-size:11px; font-weight:500; color:var(--muted); padding:4px 0; }
-
-  /* GRID CALENDARIO */
   .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); padding:0.25rem 1.25rem 0; gap:2px; }
-  .cal-day { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:4px 2px; border-radius:10px; cursor:pointer; transition:all 0.15s; position:relative; }
+  .cal-day { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:4px 2px; border-radius:10px; cursor:pointer; transition:all 0.12s; }
   .cal-day:hover { background:var(--blue-soft); }
   .cal-day.hoy .day-num { background:var(--blue); color:white; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; }
   .cal-day.selected { background:var(--blue-soft); }
@@ -59,29 +46,27 @@
   .day-num { font-size:13px; font-weight:500; color:var(--text); width:26px; height:26px; display:flex; align-items:center; justify-content:center; }
   .day-dots { display:flex; gap:2px; margin-top:2px; flex-wrap:wrap; justify-content:center; }
   .day-dot { width:5px; height:5px; border-radius:50%; }
-
-  /* SELECTOR VISTA */
   .vista-tabs { display:flex; background:var(--white); border:1px solid var(--border); border-radius:20px; padding:3px; margin:0.75rem 1.25rem 0; }
   .vista-tab { flex:1; padding:6px; border-radius:16px; border:none; font-size:12px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; color:var(--muted); background:transparent; transition:all 0.2s; }
   .vista-tab.active { background:var(--blue); color:white; }
-
-  /* EVENTOS DÍA */
   .eventos-section { padding:0.75rem 1.25rem 0; }
   .eventos-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem; }
-  .eventos-fecha { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--text); }
+  .eventos-fecha { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; }
   .eventos-count { font-size:12px; color:var(--muted); }
 
+  /* EVENTO CARD — click abre detalle, no elimina */
   .evento-card { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:0.875rem 1rem; margin-bottom:8px; display:flex; gap:12px; align-items:flex-start; animation:fadeIn 0.25s ease both; transition:border-color 0.15s; cursor:pointer; }
   .evento-card:hover { border-color:var(--blue-mid); }
+  .evento-card.expandido { border-color:var(--blue); }
   .evento-hora { display:flex; flex-direction:column; align-items:center; min-width:38px; }
-  .hora-inicio { font-size:12px; font-weight:500; color:var(--text); }
-  .hora-linea { width:1px; flex:1; min-height:12px; margin:3px 0; }
-  .hora-fin { font-size:11px; color:var(--muted); font-weight:300; }
+  .hora-inicio { font-size:12px; font-weight:500; }
+  .hora-linea { width:1px; flex:1; min-height:12px; margin:3px 0; opacity:0.3; }
+  .hora-fin { font-size:11px; color:var(--muted); }
   .evento-barra { width:4px; border-radius:2px; align-self:stretch; flex-shrink:0; min-height:40px; }
   .evento-body { flex:1; min-width:0; }
-  .evento-nombre { font-size:14px; font-weight:500; color:var(--text); }
+  .evento-nombre { font-size:14px; font-weight:500; }
   .evento-meta { display:flex; gap:8px; margin-top:4px; flex-wrap:wrap; }
-  .evento-chip { font-size:11px; color:var(--muted); font-weight:300; display:flex; align-items:center; gap:3px; }
+  .evento-chip { font-size:11px; color:var(--muted); }
   .evento-tag { font-size:11px; font-weight:500; padding:2px 8px; border-radius:8px; }
   .tag-estudio  { background:var(--blue-soft); color:var(--blue-mid); }
   .tag-prueba   { background:var(--red-soft); color:var(--red-dark); }
@@ -89,10 +74,17 @@
   .tag-personal { background:var(--purple-soft); color:var(--purple-dark); }
   .tag-otro     { background:var(--bg); color:var(--muted); }
 
-  .empty-dia { text-align:center; padding:2rem 1rem; color:var(--muted); font-size:13px; }
-  .empty-dia-icon { font-size:28px; margin-bottom:8px; }
+  /* DETALLE EXPANDIDO */
+  .evento-detalle { display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+  .evento-card.expandido .evento-detalle { display:block; }
+  .detalle-notas { font-size:13px; color:var(--muted); margin-bottom:10px; }
+  .detalle-actions { display:flex; gap:8px; }
+  .btn-detalle { font-size:12px; font-weight:500; padding:6px 14px; border-radius:10px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.12s; }
+  .btn-estudiar { background:var(--blue); color:white; }
+  .btn-eliminar { background:var(--red-soft); color:var(--red-dark); border:1px solid var(--red); }
+  .btn-detalle:active { transform:scale(0.95); }
 
-  /* MODAL */
+  .empty-dia { text-align:center; padding:2rem 1rem; color:var(--muted); font-size:13px; }
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:flex-end; justify-content:center; }
   .modal-overlay.visible { display:flex; }
   .modal { background:var(--white); border-radius:24px 24px 0 0; padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom)); width:100%; max-width:480px; animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1); }
@@ -103,42 +95,29 @@
   .modal input, .modal select { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--bg); outline:none; margin-bottom:12px; transition:border-color 0.15s; }
   .modal input:focus, .modal select:focus { border-color:var(--blue); background:var(--white); }
   .modal-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .btn-guardar { width:100%; padding:12px; border-radius:14px; background:var(--blue); border:none; color:white; font-size:15px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:4px; transition:all 0.15s; }
-  .btn-guardar:active { transform:scale(0.98); }
+  .btn-guardar { width:100%; padding:12px; border-radius:14px; background:var(--blue); border:none; color:white; font-size:15px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:4px; }
   .btn-cancelar { width:100%; padding:10px; border-radius:14px; background:transparent; border:none; color:var(--muted); font-size:14px; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:6px; }
-
-  /* NOTIF */
   .notif { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:var(--text); color:white; border-radius:12px; padding:10px 18px; font-size:13px; font-weight:500; z-index:200; opacity:0; transition:opacity 0.3s; white-space:nowrap; pointer-events:none; }
   .notif.visible { opacity:1; }
-
-  /* NAV */
   nav { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom)); z-index:10; }
-  .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 16px; border-radius:12px; cursor:pointer; border:none; background:transparent; text-decoration:none; }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 16px; border-radius:12px; cursor:pointer; border:none; background:transparent; }
   .nav-item svg { width:22px; height:22px; }
   .nav-item span { font-size:10px; font-weight:500; color:var(--muted); }
-  .nav-item.active span { color:var(--blue); }
-  .nav-item.active svg { stroke:var(--blue); }
-  .nav-item:not(.active) svg { stroke:var(--muted); }
-
+  .nav-item.active span { color:var(--blue); } .nav-item.active svg { stroke:var(--blue); } .nav-item:not(.active) svg { stroke:var(--muted); }
   section { padding:1rem 1.25rem 0; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
-
 <header>
   <h1>Calendario</h1>
-  <button class="btn-nuevo-evento" onclick="abrirModal()">+ Evento</button>
+  <button class="btn-nuevo" onclick="abrirModal()">+ Evento</button>
 </header>
-
 <div class="notif" id="notif"></div>
 
-<!-- VOZ -->
 <div class="voz-bar">
   <button class="voz-btn" id="vozBtn" onclick="toggleVoz()">
-    <div class="voz-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-6 8a7 7 0 0 0 14 0h-2a5 5 0 0 1-10 0H5zm7 9v-2h-2v2H8v2h8v-2h-2z"/></svg>
-    </div>
+    <div class="voz-icon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-6 8a7 7 0 0 0 14 0h-2a5 5 0 0 1-10 0H5zm7 9v-2h-2v2H8v2h8v-2h-2z"/></svg></div>
     <div class="voz-texts">
       <strong id="vozLabel">Bloquear tiempo por voz</strong>
       <span id="vozSub">Di "bloquea 2 horas para física el miércoles a las 4"</span>
@@ -147,7 +126,6 @@
 </div>
 <div class="transcript-box" id="transcriptBox"></div>
 
-<!-- NAVEGACIÓN MES -->
 <div class="mes-nav">
   <div class="mes-label" id="mesLabel"></div>
   <div class="mes-btns">
@@ -156,26 +134,16 @@
     <button class="mes-btn" onclick="cambiarMes(1)">›</button>
   </div>
 </div>
-
-<!-- DÍAS SEMANA -->
 <div class="dias-semana">
-  <div class="dia-lbl">Lu</div><div class="dia-lbl">Ma</div>
-  <div class="dia-lbl">Mi</div><div class="dia-lbl">Ju</div>
-  <div class="dia-lbl">Vi</div><div class="dia-lbl">Sá</div>
-  <div class="dia-lbl">Do</div>
+  <div class="dia-lbl">Lu</div><div class="dia-lbl">Ma</div><div class="dia-lbl">Mi</div>
+  <div class="dia-lbl">Ju</div><div class="dia-lbl">Vi</div><div class="dia-lbl">Sá</div><div class="dia-lbl">Do</div>
 </div>
-
-<!-- GRID CALENDARIO -->
 <div class="cal-grid" id="calGrid"></div>
-
-<!-- VISTA TABS -->
 <div class="vista-tabs">
   <button class="vista-tab active" onclick="cambiarVista('dia',this)">Día</button>
   <button class="vista-tab" onclick="cambiarVista('semana',this)">Semana</button>
   <button class="vista-tab" onclick="cambiarVista('proximos',this)">Próximos</button>
 </div>
-
-<!-- EVENTOS -->
 <div class="eventos-section">
   <div class="eventos-header">
     <div class="eventos-fecha" id="eventosFecha"></div>
@@ -184,22 +152,15 @@
   <div id="eventosLista"></div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modalTitle">Nuevo evento</div>
-
+    <div class="modal-title">Nuevo evento</div>
     <label>Nombre del evento</label>
-    <input type="text" id="m-nombre" placeholder="Ej: Estudiar física, Prueba de Historia...">
-
+    <input type="text" id="m-nombre" placeholder="Ej: Estudiar física...">
     <div class="modal-row">
-      <div>
-        <label>Fecha</label>
-        <input type="date" id="m-fecha">
-      </div>
-      <div>
-        <label>Tipo</label>
+      <div><label>Fecha</label><input type="date" id="m-fecha"></div>
+      <div><label>Tipo</label>
         <select id="m-tipo">
           <option value="estudio">Bloque de estudio</option>
           <option value="prueba">Prueba / Examen</option>
@@ -209,27 +170,17 @@
         </select>
       </div>
     </div>
-
     <div class="modal-row">
-      <div>
-        <label>Hora inicio</label>
-        <input type="time" id="m-inicio" value="16:00">
-      </div>
-      <div>
-        <label>Hora fin</label>
-        <input type="time" id="m-fin" value="18:00">
-      </div>
+      <div><label>Hora inicio</label><input type="time" id="m-inicio" value="16:00"></div>
+      <div><label>Hora fin</label><input type="time" id="m-fin" value="18:00"></div>
     </div>
-
     <label>Notas (opcional)</label>
-    <input type="text" id="m-notas" placeholder="Ej: Cap. 3 y 4, con Tomás...">
-
+    <input type="text" id="m-notas" placeholder="Cap. 3 y 4, con Tomás...">
     <button class="btn-guardar" onclick="guardarEvento()">Guardar evento</button>
     <button class="btn-cancelar" onclick="cerrarModalDirecto()">Cancelar</button>
   </div>
 </div>
 
-<!-- NAV -->
 <nav>
   <button class="nav-item" onclick="window.location='dashboard.html'">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -254,334 +205,165 @@
 </nav>
 
 <script>
-const EVENTOS_KEY = 'martin_eventos';
-const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const mesesCorto = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const diasNombre = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MESES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DIAS_N=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+let hoy=new Date(), viewDate=new Date(), diaSeleccionado=new Date(), vista='dia';
+let eventoExpandido=null;
 
-let hoy = new Date();
-let viewDate = new Date();
-let diaSeleccionado = new Date();
-let vista = 'dia';
+function fmt(d){return d.toISOString().split('T')[0];}
+function hoyStr(){return fmt(new Date());}
+function fmtLabel(str){const d=new Date(str+'T12:00:00');return `${DIAS_N[d.getDay()]} ${d.getDate()} de ${MESES_C[d.getMonth()]}`;}
 
-function hoyStr() { return fmt(new Date()); }
-function fmt(d) { return d.toISOString().split('T')[0]; }
-function fmtLabel(str) {
-  const d = new Date(str + 'T12:00:00');
-  return `${diasNombre[d.getDay()]} ${d.getDate()} de ${mesesCorto[d.getMonth()]}`;
+function getEventos(){try{return JSON.parse(localStorage.getItem('martin_eventos'))||eventosEjemplo();}catch{return eventosEjemplo();}}
+function saveEventos(ev){localStorage.setItem('martin_eventos',JSON.stringify(ev));}
+
+function eventosEjemplo(){
+  const b=new Date(),d=(delta,h1,h2,n,t,notas)=>{const f=new Date(b);f.setDate(b.getDate()+delta);return{id:Date.now()+Math.random(),nombre:n,tipo:t,fecha:fmt(f),inicio:h1,fin:h2,notas:notas||''};};
+  return [d(0,'16:00','18:00','Estudiar física','estudio','Cap. 4 y 5'),d(0,'19:00','20:00','Lectura Lenguaje','estudio',''),d(1,'10:00','11:30','Prueba de Historia','prueba','Desde independencia hasta 1900'),d(2,'15:00','17:00','Bloque libre matemáticas','bloque',''),d(3,'09:00','10:00','Entrenamiento','personal',''),d(4,'16:00','18:00','Trabajo grupal Lenguaje','estudio','Con Tomás y Camila')];
 }
 
-// ── EVENTOS ──
-function cargarEventos() {
-  try { return JSON.parse(localStorage.getItem(EVENTOS_KEY)) || eventosEjemplo(); }
-  catch { return eventosEjemplo(); }
-}
-function guardarEventos(ev) { localStorage.setItem(EVENTOS_KEY, JSON.stringify(ev)); }
+let eventos=getEventos();
 
-function eventosEjemplo() {
-  const base = new Date();
-  const d = (delta, h1, h2, nombre, tipo, notas) => {
-    const f = new Date(base); f.setDate(base.getDate() + delta);
-    return { id: Date.now() + Math.random(), nombre, tipo, fecha: fmt(f), inicio: h1, fin: h2, notas: notas||'' };
-  };
-  return [
-    d(0,'16:00','18:00','Estudiar física — electromagnetismo','estudio','Cap. 4 y 5'),
-    d(0,'19:00','20:00','Lectura Lenguaje','estudio',''),
-    d(1,'10:00','11:30','Prueba de Historia','prueba','Desde independencia hasta 1900'),
-    d(2,'15:00','17:00','Bloque libre matemáticas','bloque',''),
-    d(3,'09:00','10:00','Entrenamiento fútbol','personal',''),
-    d(4,'16:00','18:00','Trabajo grupal Lenguaje','estudio','Con Tomás y Camila'),
-    d(7,'14:00','16:00','Estudiar para certamen física','estudio',''),
-  ];
-}
-
-let eventos = cargarEventos();
-
-// ── CALENDARIO ──
-function renderCalendario() {
-  const y = viewDate.getFullYear();
-  const m = viewDate.getMonth();
-  document.getElementById('mesLabel').textContent = `${meses[m]} ${y}`;
-
-  const primerDia = new Date(y, m, 1);
-  // Lunes = 0 en nuestra grilla
-  let startDay = primerDia.getDay() - 1;
-  if (startDay < 0) startDay = 6;
-
-  const ultimoDia = new Date(y, m+1, 0).getDate();
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-
-  // Días del mes anterior
-  const prevUltimo = new Date(y, m, 0).getDate();
-  for (let i = startDay - 1; i >= 0; i--) {
-    const day = document.createElement('div');
-    day.className = 'cal-day otro-mes';
-    day.innerHTML = `<div class="day-num">${prevUltimo - i}</div>`;
+function renderCalendario(){
+  const y=viewDate.getFullYear(),m=viewDate.getMonth();
+  document.getElementById('mesLabel').textContent=`${MESES[m]} ${y}`;
+  const primerDia=new Date(y,m,1);
+  let startDay=primerDia.getDay()-1; if(startDay<0)startDay=6;
+  const ultimoDia=new Date(y,m+1,0).getDate();
+  const grid=document.getElementById('calGrid'); grid.innerHTML='';
+  const prevUltimo=new Date(y,m,0).getDate();
+  for(let i=startDay-1;i>=0;i--){const d=document.createElement('div');d.className='cal-day otro-mes';d.innerHTML=`<div class="day-num">${prevUltimo-i}</div>`;grid.appendChild(d);}
+  for(let d=1;d<=ultimoDia;d++){
+    const fecha=fmt(new Date(y,m,d)),esHoy=fecha===fmt(hoy),esSel=fecha===fmt(diaSeleccionado);
+    const evDia=eventos.filter(e=>e.fecha===fecha);
+    const day=document.createElement('div');
+    day.className=`cal-day${esHoy?' hoy':''}${esSel?' selected':''}`;
+    day.onclick=()=>seleccionarDia(fecha);
+    const colores={estudio:'var(--blue)',prueba:'var(--red)',bloque:'var(--green)',personal:'var(--purple)',otro:'var(--muted)'};
+    const dots=evDia.slice(0,3).map(e=>`<div class="day-dot" style="background:${colores[e.tipo]||'var(--muted)'}"></div>`).join('');
+    day.innerHTML=`<div class="day-num">${d}</div><div class="day-dots">${dots}</div>`;
     grid.appendChild(day);
   }
-
-  for (let d = 1; d <= ultimoDia; d++) {
-    const fecha = fmt(new Date(y, m, d));
-    const esHoy = fecha === fmt(hoy);
-    const esSel = fecha === fmt(diaSeleccionado);
-    const evDia = eventos.filter(e => e.fecha === fecha);
-
-    const day = document.createElement('div');
-    day.className = `cal-day${esHoy?' hoy':''}${esSel?' selected':''}`;
-    day.onclick = () => seleccionarDia(fecha);
-
-    const dots = evDia.slice(0,3).map(e => {
-      const col = { estudio:'var(--blue)', prueba:'var(--red)', bloque:'var(--green)', personal:'var(--purple)', otro:'var(--muted)' }[e.tipo] || 'var(--muted)';
-      return `<div class="day-dot" style="background:${col}"></div>`;
-    }).join('');
-
-    day.innerHTML = `<div class="day-num">${d}</div><div class="day-dots">${dots}</div>`;
-    grid.appendChild(day);
-  }
-
-  // Completar última semana
-  const total = startDay + ultimoDia;
-  const resto = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (let d = 1; d <= resto; d++) {
-    const day = document.createElement('div');
-    day.className = 'cal-day otro-mes';
-    day.innerHTML = `<div class="day-num">${d}</div>`;
-    grid.appendChild(day);
-  }
+  const total=startDay+ultimoDia,resto=total%7===0?0:7-(total%7);
+  for(let d=1;d<=resto;d++){const day=document.createElement('div');day.className='cal-day otro-mes';day.innerHTML=`<div class="day-num">${d}</div>`;grid.appendChild(day);}
 }
 
-function seleccionarDia(fecha) {
-  diaSeleccionado = new Date(fecha + 'T12:00:00');
-  renderCalendario();
-  renderEventos();
-}
+function seleccionarDia(fecha){diaSeleccionado=new Date(fecha+'T12:00:00');renderCalendario();renderEventos();}
+function cambiarMes(d){viewDate.setMonth(viewDate.getMonth()+d);renderCalendario();}
+function irHoy(){viewDate=new Date();diaSeleccionado=new Date();renderCalendario();renderEventos();}
+function cambiarVista(v,btn){vista=v;document.querySelectorAll('.vista-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');eventoExpandido=null;renderEventos();}
 
-function cambiarMes(delta) {
-  viewDate.setMonth(viewDate.getMonth() + delta);
-  renderCalendario();
-}
-
-function irHoy() {
-  viewDate = new Date();
-  diaSeleccionado = new Date();
-  renderCalendario();
-  renderEventos();
-}
-
-// ── EVENTOS LISTA ──
-function cambiarVista(v, btn) {
-  vista = v;
-  document.querySelectorAll('.vista-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  renderEventos();
-}
-
-function renderEventos() {
-  const lista = document.getElementById('eventosLista');
-  const fechaEl = document.getElementById('eventosFecha');
-  const countEl = document.getElementById('eventosCount');
-  let evFiltrados = [];
-
-  if (vista === 'dia') {
-    const fechaSel = fmt(diaSeleccionado);
-    evFiltrados = eventos.filter(e => e.fecha === fechaSel).sort((a,b) => a.inicio.localeCompare(b.inicio));
-    fechaEl.textContent = fmtLabel(fechaSel);
-  } else if (vista === 'semana') {
-    const inicio = new Date(diaSeleccionado);
-    const dia = inicio.getDay() || 7;
-    inicio.setDate(inicio.getDate() - dia + 1);
-    const fin = new Date(inicio); fin.setDate(inicio.getDate() + 6);
-    evFiltrados = eventos.filter(e => {
-      const f = new Date(e.fecha + 'T12:00:00');
-      return f >= inicio && f <= fin;
-    }).sort((a,b) => a.fecha.localeCompare(b.fecha) || a.inicio.localeCompare(b.inicio));
-    fechaEl.textContent = `Semana del ${inicio.getDate()} al ${fin.getDate()} de ${mesesCorto[fin.getMonth()]}`;
-  } else {
-    const hoyDate = fmt(hoy);
-    evFiltrados = eventos.filter(e => e.fecha >= hoyDate).sort((a,b) => a.fecha.localeCompare(b.fecha) || a.inicio.localeCompare(b.inicio)).slice(0,10);
-    fechaEl.textContent = 'Próximos eventos';
-  }
-
-  countEl.textContent = evFiltrados.length ? `${evFiltrados.length} evento${evFiltrados.length>1?'s':''}` : '';
-
-  if (!evFiltrados.length) {
-    lista.innerHTML = `<div class="empty-dia"><div class="empty-dia-icon">📅</div><div style="font-weight:500;margin-bottom:4px">Sin eventos</div><div>Usa el botón de voz o + Evento para agregar</div></div>`;
-    return;
-  }
-
-  const colores = { estudio:'var(--blue)', prueba:'var(--red)', bloque:'var(--green)', personal:'var(--purple)', otro:'var(--muted)' };
-  const tagClass = { estudio:'tag-estudio', prueba:'tag-prueba', bloque:'tag-bloque', personal:'tag-personal', otro:'tag-otro' };
-  const tagLabel = { estudio:'Estudio', prueba:'Prueba', bloque:'Bloque', personal:'Personal', otro:'Otro' };
-
-  lista.innerHTML = evFiltrados.map((e,i) => `
-    <div class="evento-card" style="animation-delay:${i*0.05}s" onclick="eliminarEvento('${e.id}')">
+function renderEventos(){
+  const lista=document.getElementById('eventosLista');
+  let evF=[];
+  const fechaSel=fmt(diaSeleccionado);
+  if(vista==='dia'){evF=eventos.filter(e=>e.fecha===fechaSel).sort((a,b)=>a.inicio.localeCompare(b.inicio));document.getElementById('eventosFecha').textContent=fmtLabel(fechaSel);}
+  else if(vista==='semana'){const ini=new Date(diaSeleccionado),dia=ini.getDay()||7;ini.setDate(ini.getDate()-dia+1);const fin=new Date(ini);fin.setDate(ini.getDate()+6);evF=eventos.filter(e=>{const f=new Date(e.fecha+'T12:00:00');return f>=ini&&f<=fin;}).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.inicio.localeCompare(b.inicio));const ini2=new Date(ini),fin2=new Date(fin);document.getElementById('eventosFecha').textContent=`Semana del ${ini2.getDate()} al ${fin2.getDate()} de ${MESES_C[fin2.getMonth()]}`;}
+  else{const hoyD=hoyStr();evF=eventos.filter(e=>e.fecha>=hoyD).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.inicio.localeCompare(b.inicio)).slice(0,10);document.getElementById('eventosFecha').textContent='Próximos eventos';}
+  document.getElementById('eventosCount').textContent=evF.length?`${evF.length} evento${evF.length>1?'s':''}`:'' ;
+  if(!evF.length){lista.innerHTML=`<div class="empty-dia">📅 Sin eventos — usa el botón de voz o + Evento</div>`;return;}
+  const colores={estudio:'var(--blue)',prueba:'var(--red)',bloque:'var(--green)',personal:'var(--purple)',otro:'var(--muted)'};
+  const tagC={estudio:'tag-estudio',prueba:'tag-prueba',bloque:'tag-bloque',personal:'tag-personal',otro:'tag-otro'};
+  const tagL={estudio:'Estudio',prueba:'Prueba',bloque:'Bloque',personal:'Personal',otro:'Otro'};
+  lista.innerHTML=evF.map((e,i)=>`
+    <div class="evento-card${eventoExpandido===String(e.id)?' expandido':''}" id="ev-${e.id}" onclick="toggleEvento('${e.id}')" style="animation-delay:${i*0.04}s">
       <div class="evento-hora">
         <div class="hora-inicio">${e.inicio}</div>
-        <div class="hora-linea" style="background:${colores[e.tipo]||'var(--muted)'}; opacity:0.3;"></div>
+        <div class="hora-linea" style="background:${colores[e.tipo]||'var(--muted)'}"></div>
         <div class="hora-fin">${e.fin}</div>
       </div>
       <div class="evento-barra" style="background:${colores[e.tipo]||'var(--muted)'}"></div>
       <div class="evento-body">
         <div class="evento-nombre">${e.nombre}</div>
         <div class="evento-meta">
-          ${vista !== 'dia' ? `<span class="evento-chip">${fmtLabel(e.fecha)}</span>` : ''}
-          ${e.notas ? `<span class="evento-chip">${e.notas}</span>` : ''}
+          ${vista!=='dia'?`<span class="evento-chip">${fmtLabel(e.fecha)}</span>`:''}
+          ${e.notas?`<span class="evento-chip">${e.notas}</span>`:''}
+        </div>
+        <div class="evento-detalle">
+          ${e.notas?`<div class="detalle-notas">📝 ${e.notas}</div>`:''}
+          <div class="detalle-actions">
+            <button class="btn-detalle btn-estudiar" onclick="event.stopPropagation();irAPomodoro('${e.nombre.replace(/'/g,"\\'")}')" >⏱ Estudiar ahora</button>
+            <button class="btn-detalle btn-eliminar" onclick="event.stopPropagation();eliminarEvento('${e.id}')">Eliminar</button>
+          </div>
         </div>
       </div>
-      <span class="evento-tag ${tagClass[e.tipo]||'tag-otro'}">${tagLabel[e.tipo]||'Otro'}</span>
-    </div>
-  `).join('');
+      <span class="evento-tag ${tagC[e.tipo]||'tag-otro'}">${tagL[e.tipo]||'Otro'}</span>
+    </div>`).join('');
 }
 
-function eliminarEvento(id) {
-  if (!confirm('¿Eliminar este evento?')) return;
-  eventos = eventos.filter(e => String(e.id) !== String(id));
-  guardarEventos(eventos);
-  renderCalendario();
+function toggleEvento(id) {
+  eventoExpandido = eventoExpandido===id ? null : id;
   renderEventos();
 }
 
-// ── MODAL ──
-function abrirModal(fechaPreset) {
-  document.getElementById('m-fecha').value = fechaPreset || fmt(diaSeleccionado);
-  document.getElementById('m-nombre').value = '';
-  document.getElementById('m-notas').value = '';
-  document.getElementById('modalOverlay').classList.add('visible');
-}
-function cerrarModal(e) { if (e.target===document.getElementById('modalOverlay')) cerrarModalDirecto(); }
-function cerrarModalDirecto() { document.getElementById('modalOverlay').classList.remove('visible'); }
-
-function guardarEvento() {
-  const nombre = document.getElementById('m-nombre').value.trim();
-  if (!nombre) { document.getElementById('m-nombre').focus(); return; }
-  const ev = {
-    id: Date.now(),
-    nombre,
-    tipo:   document.getElementById('m-tipo').value,
-    fecha:  document.getElementById('m-fecha').value,
-    inicio: document.getElementById('m-inicio').value,
-    fin:    document.getElementById('m-fin').value,
-    notas:  document.getElementById('m-notas').value.trim(),
-  };
-  eventos.push(ev);
-  guardarEventos(eventos);
-  cerrarModalDirecto();
-  diaSeleccionado = new Date(ev.fecha + 'T12:00:00');
-  renderCalendario();
-  renderEventos();
-  mostrarNotif(`✅ "${ev.nombre}" agregado al calendario`);
+function irAPomodoro(nombre){
+  localStorage.setItem('martin_pomo_tarea', nombre);
+  window.location='pomodoro.html';
 }
 
-// ── VOZ ──
-let recognition = null;
-let vozActiva = false;
+function eliminarEvento(id){
+  eventos=eventos.filter(e=>String(e.id)!==String(id));
+  saveEventos(eventos); eventoExpandido=null;
+  renderCalendario(); renderEventos();
+  mostrarNotif('🗑 Evento eliminado');
+}
 
-function toggleVoz() {
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    alert('Usa Chrome o Safari para el reconocimiento de voz.'); return;
-  }
-  if (vozActiva) { recognition && recognition.stop(); return; }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = 'es-CL';
-  recognition.continuous = false;
-  recognition.interimResults = true;
+function abrirModal(f){document.getElementById('m-fecha').value=f||fmt(diaSeleccionado);document.getElementById('m-nombre').value='';document.getElementById('m-notas').value='';document.getElementById('modalOverlay').classList.add('visible');}
+function cerrarModal(e){if(e.target===document.getElementById('modalOverlay'))cerrarModalDirecto();}
+function cerrarModalDirecto(){document.getElementById('modalOverlay').classList.remove('visible');}
 
-  recognition.onstart = () => {
-    vozActiva = true;
-    document.getElementById('vozBtn').classList.add('listening');
-    document.getElementById('vozLabel').textContent = 'Escuchando...';
-    document.getElementById('transcriptBox').classList.add('visible');
-    document.getElementById('transcriptBox').textContent = '🎙 Habla ahora...';
-  };
-  recognition.onresult = (e) => {
-    document.getElementById('transcriptBox').textContent = Array.from(e.results).map(r=>r[0].transcript).join('');
-  };
-  recognition.onend = () => {
-    vozActiva = false;
-    document.getElementById('vozBtn').classList.remove('listening');
-    document.getElementById('vozLabel').textContent = 'Bloquear tiempo por voz';
-    const txt = document.getElementById('transcriptBox').textContent;
-    if (txt && txt !== '🎙 Habla ahora...') procesarVozCal(txt);
-  };
-  recognition.onerror = () => {
-    vozActiva = false;
-    document.getElementById('vozBtn').classList.remove('listening');
-  };
+function guardarEvento(){
+  const nombre=document.getElementById('m-nombre').value.trim();
+  if(!nombre){document.getElementById('m-nombre').focus();return;}
+  const ev={id:Date.now(),nombre,tipo:document.getElementById('m-tipo').value,fecha:document.getElementById('m-fecha').value,inicio:document.getElementById('m-inicio').value,fin:document.getElementById('m-fin').value,notas:document.getElementById('m-notas').value.trim()};
+  eventos.push(ev); saveEventos(eventos); cerrarModalDirecto();
+  diaSeleccionado=new Date(ev.fecha+'T12:00:00');
+  renderCalendario(); renderEventos();
+  mostrarNotif(`✅ "${ev.nombre}" agregado`);
+}
+
+// VOZ
+let recognition=null,vozActiva=false;
+function toggleVoz(){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Usa Chrome o Safari.');return;}
+  if(vozActiva){recognition&&recognition.stop();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='es-CL';recognition.continuous=false;recognition.interimResults=true;
+  recognition.onstart=()=>{vozActiva=true;document.getElementById('vozBtn').classList.add('listening');document.getElementById('vozLabel').textContent='Escuchando...';document.getElementById('transcriptBox').classList.add('visible');document.getElementById('transcriptBox').textContent='🎙 Habla ahora...';};
+  recognition.onresult=(e)=>{document.getElementById('transcriptBox').textContent=Array.from(e.results).map(r=>r[0].transcript).join('');};
+  recognition.onend=()=>{vozActiva=false;document.getElementById('vozBtn').classList.remove('listening');document.getElementById('vozLabel').textContent='Bloquear tiempo por voz';const txt=document.getElementById('transcriptBox').textContent;if(txt&&txt!=='🎙 Habla ahora...')procesarVozCal(txt);};
+  recognition.onerror=()=>{vozActiva=false;document.getElementById('vozBtn').classList.remove('listening');};
   recognition.start();
 }
 
-function procesarVozCal(texto) {
-  const t = texto.toLowerCase();
-  const dia = extraerDia(t);
-  const fecha = diaAFecha(dia);
-  const horas = extraerHoras(t);
-  const ramo = extraerRamo(t);
-  const tipo = t.includes('prueba')||t.includes('examen') ? 'prueba' : 'estudio';
-  const nombre = tipo === 'prueba'
-    ? `Prueba de ${ramo}`
-    : `Estudiar ${ramo}`;
-
-  const ev = { id:Date.now(), nombre, tipo, fecha, inicio:horas[0], fin:horas[1], notas:'' };
-  eventos.push(ev);
-  guardarEventos(eventos);
-
-  diaSeleccionado = new Date(fecha + 'T12:00:00');
-  renderCalendario();
-  renderEventos();
-
-  document.getElementById('transcriptBox').textContent = `✅ "${nombre}" — ${dia} ${horas[0]} a ${horas[1]}`;
-  setTimeout(() => document.getElementById('transcriptBox').classList.remove('visible'), 4000);
+function procesarVozCal(texto){
+  const t=texto.toLowerCase();
+  const diasL=['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+  const ramosL=['física','matemáticas','matemática','historia','lenguaje','inglés','química','biología','filosofía'];
+  const dia=diasL.find(d=>t.includes(d))||'hoy';
+  const ramo=ramosL.find(r=>t.includes(r))||'ramo';
+  const tipo=t.includes('prueba')||t.includes('examen')?'prueba':'estudio';
+  const nombre=tipo==='prueba'?`Prueba de ${ramo.charAt(0).toUpperCase()+ramo.slice(1)}`:`Estudiar ${ramo.charAt(0).toUpperCase()+ramo.slice(1)}`;
+  const match=t.match(/(\d{1,2})(?::(\d{2}))?\s*(?:a\s*las?\s*(\d{1,2}))?/);
+  let h1='16:00',h2='18:00';
+  if(match){const n1=parseInt(match[1]);const n2=match[3]?parseInt(match[3]):n1+2;h1=String(n1).padStart(2,'0')+':00';h2=String(n2).padStart(2,'0')+':00';}
+  const diaIdx=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'].indexOf(dia);
+  let fecha=hoyStr();
+  if(diaIdx!==-1){const h=new Date();let diff=diaIdx-h.getDay();if(diff<=0)diff+=7;const td=new Date(h);td.setDate(h.getDate()+diff);fecha=fmt(td);}
+  const ev={id:Date.now(),nombre,tipo,fecha,inicio:h1,fin:h2,notas:''};
+  eventos.push(ev);saveEventos(eventos);
+  diaSeleccionado=new Date(fecha+'T12:00:00');
+  renderCalendario();renderEventos();
+  document.getElementById('transcriptBox').textContent=`✅ "${nombre}" — ${dia} ${h1} a ${h2}`;
+  setTimeout(()=>document.getElementById('transcriptBox').classList.remove('visible'),4000);
   mostrarNotif(`📅 Bloqueado: ${nombre}`);
 }
 
-function extraerDia(t) {
-  const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
-  return dias.find(d => t.includes(d)) || 'hoy';
-}
+function mostrarNotif(msg){const n=document.getElementById('notif');n.textContent=msg;n.classList.add('visible');setTimeout(()=>n.classList.remove('visible'),3000);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarModalDirecto();});
 
-function diaAFecha(dia) {
-  const hoyD = new Date();
-  if (dia === 'hoy') return fmt(hoyD);
-  if (dia === 'mañana') { const m = new Date(hoyD); m.setDate(m.getDate()+1); return fmt(m); }
-  const diasSem = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const idx = diasSem.indexOf(dia);
-  if (idx === -1) return fmt(hoyD);
-  let diff = idx - hoyD.getDay();
-  if (diff <= 0) diff += 7;
-  const target = new Date(hoyD); target.setDate(hoyD.getDate()+diff);
-  return fmt(target);
-}
-
-function extraerHoras(t) {
-  const match = t.match(/(\d{1,2})(?::(\d{2}))?\s*(?:a\s*las\s*(\d{1,2})(?::(\d{2}))?)?/);
-  if (match) {
-    const h1 = parseInt(match[1]);
-    const h2 = match[3] ? parseInt(match[3]) : h1 + 2;
-    return [`${String(h1).padStart(2,'0')}:00`, `${String(h2).padStart(2,'0')}:00`];
-  }
-  return ['16:00','18:00'];
-}
-
-function extraerRamo(t) {
-  const ramos = ['física','matemáticas','matemática','historia','lenguaje','inglés','química','biología','filosofía'];
-  const r = ramos.find(x => t.includes(x));
-  return r ? r.charAt(0).toUpperCase()+r.slice(1) : 'ramo';
-}
-
-function mostrarNotif(msg) {
-  const n = document.getElementById('notif');
-  n.textContent = msg;
-  n.classList.add('visible');
-  setTimeout(() => n.classList.remove('visible'), 3000);
-}
-
-document.addEventListener('keydown', e => { if (e.key==='Escape') cerrarModalDirecto(); });
-
-// INIT
-renderCalendario();
-renderEventos();
+renderCalendario();renderEventos();
 </script>
 </body>
 </html>
