@@ -338,7 +338,7 @@
 <!-- LISTA -->
 <section>
   <!-- BARRA DE PROGRESO VISUAL -->
-  <div id="progressWrap" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:1rem;margin-bottom:10px;display:none">
+  <div id="progressWrap" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:1rem;margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <span style="font-size:13px;font-weight:500;color:var(--text)" id="progressTitle">Progreso de hoy</span>
       <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--blue)" id="progressPct">0%</span>
@@ -603,16 +603,18 @@
 
     // Barra y números
     document.getElementById('progressPct').textContent = pct + '%';
-    document.getElementById('progressBar').style.width = pct + '%';
+    const bar = document.getElementById('progressBar');
+    bar.style.width = '0%'; // reset para forzar la animación
+    requestAnimationFrame(() => { bar.style.width = pct + '%'; });
     document.getElementById('progressDone').textContent = hechas + (hechas === 1 ? ' completada' : ' completadas');
     document.getElementById('progressLeft').textContent = pendientes + (pendientes === 1 ? ' pendiente' : ' pendientes');
 
     // Color de la barra según avance
-    const bar = document.getElementById('progressBar');
-    if (pct >= 100) bar.style.background = 'var(--green)';
-    else if (pct >= 60) bar.style.background = '#00C896';
-    else if (pct >= 30) bar.style.background = 'var(--blue)';
-    else bar.style.background = 'var(--amber)';
+    const barEl = document.getElementById('progressBar');
+    if (pct >= 100) barEl.style.background = 'var(--green)';
+    else if (pct >= 60) barEl.style.background = '#00C896';
+    else if (pct >= 30) barEl.style.background = 'var(--blue)';
+    else barEl.style.background = 'var(--amber)';
 
     // Frase motivacional
     const motivEl = document.getElementById('motivMsg');
