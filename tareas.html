@@ -332,6 +332,9 @@
   <button class="btn-agregar" onclick="agregarRapido()">+ Agregar</button>
 </div>
 
+<!-- NOTIF DESHACER -->
+<div id="notif" style="position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--text);color:white;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:opacity 0.3s;white-space:nowrap;max-width:90vw;text-align:center;"></div>
+
 <!-- LISTA -->
 <section>
   <div class="section-header">
@@ -459,6 +462,7 @@
   // ── RENDER ──
   function render() {
     const lista = document.getElementById('taskList');
+    const urgOrd = {urgente:0,media:1,normal:2};
     let filtradas = tareas.filter(t => {
       if (filtroActivo === 'hechas')   return t.done;
       if (filtroActivo === 'hoy')      return !t.done && t.fecha === hoyStr();
@@ -467,6 +471,11 @@
       if (filtroActivo === 'tarea')    return !t.done && t.tipo === 'tarea';
       if (filtroActivo === 'trabajo')  return !t.done && t.tipo === 'trabajo';
       return !t.done || filtroActivo === 'todas';
+    }).sort((a,b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      const uDiff = (urgOrd[a.urgencia]||2) - (urgOrd[b.urgencia]||2);
+      if (uDiff !== 0) return uDiff;
+      return (a.fecha||'').localeCompare(b.fecha||'');
     });
 
     if (filtradas.length === 0) {
@@ -540,9 +549,35 @@
     if (t) { t.done = !t.done; guardarTareas(tareas); render(); }
   }
 
+  let ultimaEliminada = null;
+  let undoTimeout = null;
+
   function eliminar(id) {
+    const t = tareas.find(x => x.id === id);
+    if (!t) return;
+    ultimaEliminada = t;
     tareas = tareas.filter(x => x.id !== id);
-    guardarTareas(tareas); render();
+    guardarTareas(tareas);
+    render();
+    mostrarNotifDeshacer(`🗑 "${t.nombre.slice(0,30)}${t.nombre.length>30?'…':''}" eliminada`);
+  }
+
+  function mostrarNotifDeshacer(msg) {
+    clearTimeout(undoTimeout);
+    const n = document.getElementById('notif');
+    n.innerHTML = `${msg} &nbsp;<span onclick="deshacerEliminar()" style="color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline">Deshacer</span>`;
+    n.classList.add('visible');
+    undoTimeout = setTimeout(() => { n.classList.remove('visible'); ultimaEliminada=null; }, 4000);
+  }
+
+  function deshacerEliminar() {
+    if (!ultimaEliminada) return;
+    tareas.unshift(ultimaEliminada);
+    guardarTareas(tareas);
+    ultimaEliminada = null;
+    clearTimeout(undoTimeout);
+    document.getElementById('notif').classList.remove('visible');
+    render();
   }
 
   function iniciarPomo(id) {
