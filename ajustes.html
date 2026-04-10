@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martín — Ajustes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:#0090F8; --blue-soft:#E6F1FB; --blue-mid:#378ADD;
+    --green:#00C896; --green-soft:#E1F5EE; --green-dark:#085041;
+    --amber:#FFB020; --amber-soft:#FAEEDA; --amber-dark:#633806;
+    --red:#FF4D4D; --red-soft:#FCEBEB; --red-dark:#A32D2D;
+    --bg:#F5F7FA; --white:#FFFFFF; --text:#2A2A2A; --muted:#8890A0; --border:#E2E5EC;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); min-height:100dvh; padding-bottom:40px; color:var(--text); }
+  header { background:var(--white); border-bottom:1px solid var(--border); padding:1rem 1.25rem; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:10; }
+  .btn-back { width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--bg); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .btn-back svg { width:16px; height:16px; stroke:var(--text); fill:none; stroke-width:2; stroke-linecap:round; }
+  header h1 { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; }
+
+  .perfil-card { margin:1.25rem; background:var(--white); border:1px solid var(--border); border-radius:20px; padding:1.5rem; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .avatar-big { width:72px; height:72px; border-radius:50%; background:var(--blue-soft); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--blue); }
+  .perfil-nombre { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; }
+  .perfil-sub { font-size:13px; color:var(--muted); }
+  .input-nombre { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:12px; font-size:15px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--bg); outline:none; text-align:center; }
+  .input-nombre:focus { border-color:var(--blue); background:var(--white); }
+  .btn-guardar-nombre { padding:8px 20px; background:var(--blue); border:none; border-radius:20px; color:white; font-size:13px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  .seccion { margin:0 1.25rem 1rem; }
+  .seccion-title { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:.5rem; padding-left:4px; }
+  .ajuste-card { background:var(--white); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .ajuste-row { padding:.875rem 1rem; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
+  .ajuste-row:last-child { border-bottom:none; }
+  .ajuste-row:hover { background:var(--bg); }
+  .ajuste-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .icon-blue { background:var(--blue-soft); }
+  .icon-green { background:var(--green-soft); }
+  .icon-amber { background:var(--amber-soft); }
+  .icon-red { background:var(--red-soft); }
+  .ajuste-icon svg { width:18px; height:18px; }
+  .ajuste-body { flex:1; }
+  .ajuste-label { font-size:14px; font-weight:500; color:var(--text); }
+  .ajuste-desc { font-size:12px; color:var(--muted); margin-top:1px; }
+  .ajuste-arrow { color:var(--muted); font-size:16px; }
+
+  /* PIN CHANGE */
+  .pin-section { display:none; padding:1.25rem; background:var(--bg); border-top:1px solid var(--border); }
+  .pin-section.visible { display:block; }
+  .pin-section h3 { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:1rem; }
+  .pin-step { margin-bottom:1rem; }
+  .pin-step label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+  .pin-dots { display:flex; gap:10px; margin-bottom:8px; }
+  .pin-dot { width:12px; height:12px; border-radius:50%; border:2px solid var(--border); transition:all 0.2s; }
+  .pin-dot.filled { background:var(--blue); border-color:var(--blue); }
+  .pin-dot.success { background:var(--green); border-color:var(--green); }
+  .pin-dot.error { background:var(--red); border-color:var(--red); animation:shake .4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+  .keypad-mini { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:220px; }
+  .key-mini { height:44px; background:var(--white); border:1px solid var(--border); border-radius:10px; font-family:'Syne',sans-serif; font-size:18px; font-weight:700; cursor:pointer; transition:all 0.1s; }
+  .key-mini:active { background:var(--blue); color:white; border-color:var(--blue); transform:scale(0.93); }
+  .key-mini.del { font-size:14px; background:transparent; border-color:transparent; color:var(--muted); }
+  .pin-msg { font-size:13px; margin-top:8px; min-height:20px; }
+  .pin-msg.ok { color:var(--green); }
+  .pin-msg.err { color:var(--red); }
+
+  .notif { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:var(--text); color:white; border-radius:12px; padding:10px 18px; font-size:13px; font-weight:500; z-index:200; opacity:0; transition:opacity 0.3s; white-space:nowrap; pointer-events:none; }
+  .notif.visible { opacity:1; }
+
+  .version { text-align:center; font-size:12px; color:var(--muted); padding:1.5rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="btn-back" onclick="window.history.back()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <h1>Ajustes</h1>
+</header>
+
+<div class="notif" id="notif"></div>
+
+<!-- PERFIL -->
+<div class="perfil-card">
+  <div class="avatar-big" id="avatarBig">M</div>
+  <div class="perfil-nombre" id="perfilNombre">Martín</div>
+  <div class="perfil-sub">4° Medio · Martín Organizer</div>
+  <input class="input-nombre" id="inputNombre" placeholder="Tu nombre" maxlength="20">
+  <button class="btn-guardar-nombre" onclick="guardarNombre()">Guardar nombre</button>
+</div>
+
+<!-- SEGURIDAD -->
+<div class="seccion">
+  <div class="seccion-title">Seguridad</div>
+  <div class="ajuste-card">
+    <div class="ajuste-row" onclick="togglePinSection()">
+      <div class="ajuste-icon icon-blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="ajuste-body">
+        <div class="ajuste-label">Cambiar PIN</div>
+        <div class="ajuste-desc">PIN de 4 dígitos para acceder</div>
+      </div>
+      <span class="ajuste-arrow" id="pinArrow">›</span>
+    </div>
+    <div class="pin-section" id="pinSection">
+      <h3>Cambiar PIN de acceso</h3>
+
+      <div class="pin-step" id="step1">
+        <label>PIN actual</label>
+        <div class="pin-dots" id="dots-actual">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+      </div>
+      <div class="pin-step" id="step2" style="display:none">
+        <label>Nuevo PIN</label>
+        <div class="pin-dots" id="dots-nuevo">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+      </div>
+      <div class="pin-step" id="step3" style="display:none">
+        <label>Confirmar nuevo PIN</label>
+        <div class="pin-dots" id="dots-confirm">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+      </div>
+
+      <div class="keypad-mini">
+        <button class="key-mini" onclick="pinKey('1')">1</button>
+        <button class="key-mini" onclick="pinKey('2')">2</button>
+        <button class="key-mini" onclick="pinKey('3')">3</button>
+        <button class="key-mini" onclick="pinKey('4')">4</button>
+        <button class="key-mini" onclick="pinKey('5')">5</button>
+        <button class="key-mini" onclick="pinKey('6')">6</button>
+        <button class="key-mini" onclick="pinKey('7')">7</button>
+        <button class="key-mini" onclick="pinKey('8')">8</button>
+        <button class="key-mini" onclick="pinKey('9')">9</button>
+        <div></div>
+        <button class="key-mini" onclick="pinKey('0')">0</button>
+        <button class="key-mini del" onclick="pinDel()">⌫</button>
+      </div>
+      <div class="pin-msg" id="pinMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- POMODORO -->
+<div class="seccion">
+  <div class="seccion-title">Pomodoro</div>
+  <div class="ajuste-card">
+    <div class="ajuste-row" onclick="window.location='pomodoro.html'">
+      <div class="ajuste-icon icon-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="ajuste-body">
+        <div class="ajuste-label">Configurar tiempos</div>
+        <div class="ajuste-desc">Foco, descanso corto y largo</div>
+      </div>
+      <span class="ajuste-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- DATOS -->
+<div class="seccion">
+  <div class="seccion-title">Datos</div>
+  <div class="ajuste-card">
+    <div class="ajuste-row" onclick="limpiarTareas()">
+      <div class="ajuste-icon icon-amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div class="ajuste-body">
+        <div class="ajuste-label">Limpiar tareas completadas</div>
+        <div class="ajuste-desc">Elimina solo las tareas marcadas como hechas</div>
+      </div>
+      <span class="ajuste-arrow">›</span>
+    </div>
+    <div class="ajuste-row" onclick="limpiarHistorial()">
+      <div class="ajuste-icon icon-amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="ajuste-body">
+        <div class="ajuste-label">Limpiar historial Pomodoro</div>
+        <div class="ajuste-desc">Borra el historial de sesiones guardadas</div>
+      </div>
+      <span class="ajuste-arrow">›</span>
+    </div>
+    <div class="ajuste-row" onclick="resetearTodo()">
+      <div class="ajuste-icon icon-red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </div>
+      <div class="ajuste-body">
+        <div class="ajuste-label">Resetear todo</div>
+        <div class="ajuste-desc">Borra todos los datos de la app</div>
+      </div>
+      <span class="ajuste-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<div class="version">Martín Organizer v1.0 · Hecho con ❤️ por Naty</div>
+
+<script>
+  // Nombre
+  const nombre = localStorage.getItem('martin_nombre') || 'Martín';
+  document.getElementById('perfilNombre').textContent = nombre;
+  document.getElementById('avatarBig').textContent = nombre.charAt(0).toUpperCase();
+  document.getElementById('inputNombre').value = nombre;
+
+  function guardarNombre() {
+    const val = document.getElementById('inputNombre').value.trim();
+    if (!val) return;
+    localStorage.setItem('martin_nombre', val);
+    document.getElementById('perfilNombre').textContent = val;
+    document.getElementById('avatarBig').textContent = val.charAt(0).toUpperCase();
+    mostrarNotif('✅ Nombre guardado');
+  }
+
+  // PIN
+  let pinStep = 1, pinActual = '', pinNuevo = '', pinConfirm = '';
+  const getPin = () => localStorage.getItem('martin_pin') || '1234';
+
+  function togglePinSection() {
+    const s = document.getElementById('pinSection');
+    const open = s.classList.toggle('visible');
+    document.getElementById('pinArrow').textContent = open ? '∨' : '›';
+    if (open) resetPinFlow();
+  }
+
+  function resetPinFlow() {
+    pinStep=1; pinActual=''; pinNuevo=''; pinConfirm='';
+    document.getElementById('step1').style.display='block';
+    document.getElementById('step2').style.display='none';
+    document.getElementById('step3').style.display='none';
+    document.getElementById('pinMsg').textContent='';
+    document.getElementById('pinMsg').className='pin-msg';
+    actualizarDots('dots-actual', 0, '');
+  }
+
+  function pinKey(d) {
+    if (pinStep===1) {
+      if (pinActual.length>=4) return;
+      pinActual+=d; actualizarDots('dots-actual', pinActual.length, '');
+      if (pinActual.length===4) setTimeout(verificarActual, 200);
+    } else if (pinStep===2) {
+      if (pinNuevo.length>=4) return;
+      pinNuevo+=d; actualizarDots('dots-nuevo', pinNuevo.length, '');
+      if (pinNuevo.length===4) setTimeout(pasarAConfirmar, 200);
+    } else {
+      if (pinConfirm.length>=4) return;
+      pinConfirm+=d; actualizarDots('dots-confirm', pinConfirm.length, '');
+      if (pinConfirm.length===4) setTimeout(guardarPin, 200);
+    }
+  }
+
+  function pinDel() {
+    if (pinStep===1 && pinActual.length) { pinActual=pinActual.slice(0,-1); actualizarDots('dots-actual',pinActual.length,''); }
+    else if (pinStep===2 && pinNuevo.length) { pinNuevo=pinNuevo.slice(0,-1); actualizarDots('dots-nuevo',pinNuevo.length,''); }
+    else if (pinStep===3 && pinConfirm.length) { pinConfirm=pinConfirm.slice(0,-1); actualizarDots('dots-confirm',pinConfirm.length,''); }
+  }
+
+  function actualizarDots(id, count, state) {
+    const dots = document.getElementById(id).querySelectorAll('.pin-dot');
+    dots.forEach((d,i) => { d.className='pin-dot'+(i<count?' '+(state||'filled'):''); });
+  }
+
+  function verificarActual() {
+    if (pinActual === getPin()) {
+      actualizarDots('dots-actual',4,'success');
+      setTimeout(()=>{ pinStep=2; document.getElementById('step1').style.display='none'; document.getElementById('step2').style.display='block'; document.getElementById('pinMsg').textContent=''; },500);
+    } else {
+      actualizarDots('dots-actual',4,'error');
+      document.getElementById('pinMsg').textContent='PIN incorrecto';
+      document.getElementById('pinMsg').className='pin-msg err';
+      setTimeout(()=>{ pinActual=''; actualizarDots('dots-actual',0,''); document.getElementById('pinMsg').textContent=''; },1000);
+    }
+  }
+
+  function pasarAConfirmar() {
+    pinStep=3; document.getElementById('step2').style.display='none'; document.getElementById('step3').style.display='block';
+  }
+
+  function guardarPin() {
+    if (pinNuevo===pinConfirm) {
+      actualizarDots('dots-confirm',4,'success');
+      localStorage.setItem('martin_pin', pinNuevo);
+      document.getElementById('pinMsg').textContent='✅ PIN cambiado con éxito';
+      document.getElementById('pinMsg').className='pin-msg ok';
+      setTimeout(resetPinFlow, 1500);
+      mostrarNotif('🔐 PIN actualizado');
+    } else {
+      actualizarDots('dots-confirm',4,'error');
+      document.getElementById('pinMsg').textContent='Los PINs no coinciden, intenta de nuevo';
+      document.getElementById('pinMsg').className='pin-msg err';
+      setTimeout(()=>{ pinNuevo=''; pinConfirm=''; pinStep=2; document.getElementById('step3').style.display='none'; document.getElementById('step2').style.display='block'; actualizarDots('dots-nuevo',0,''); document.getElementById('pinMsg').textContent=''; },1200);
+    }
+  }
+
+  // Datos
+  function limpiarTareas() {
+    if (!confirm('¿Eliminar todas las tareas completadas?')) return;
+    const t = JSON.parse(localStorage.getItem('martin_tareas')||'[]').filter(x=>!x.done);
+    localStorage.setItem('martin_tareas', JSON.stringify(t));
+    mostrarNotif('✅ Tareas completadas eliminadas');
+  }
+
+  function limpiarHistorial() {
+    if (!confirm('¿Borrar el historial de Pomodoro?')) return;
+    localStorage.removeItem('martin_pomo_hist');
+    mostrarNotif('✅ Historial borrado');
+  }
+
+  function resetearTodo() {
+    if (!confirm('⚠️ Esto borra TODOS los datos de la app. ¿Estás seguro?')) return;
+    if (!confirm('¿Confirmas que quieres borrar todo?')) return;
+    ['martin_tareas','martin_notas','martin_eventos','martin_pomo_hist','martin_pomo_cfg','martin_racha','martin_ultima_visita','martin_nombre','martin_pomo_tarea'].forEach(k=>localStorage.removeItem(k));
+    mostrarNotif('♻️ App reseteada');
+    setTimeout(()=>window.location='index.html', 1500);
+  }
+
+  function mostrarNotif(msg) {
+    const n=document.getElementById('notif'); n.textContent=msg; n.classList.add('visible');
+    setTimeout(()=>n.classList.remove('visible'),3000);
+  }
+</script>
+</body>
+</html>
