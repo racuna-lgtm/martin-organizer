@@ -397,12 +397,22 @@
         <input type="date" id="m-fecha">
       </div>
       <div>
+        <label>Hora (opcional)</label>
+        <input type="time" id="m-hora" placeholder="08:00">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div>
         <label>Urgencia</label>
         <select id="m-urgencia">
           <option value="normal">Normal</option>
           <option value="media">Media</option>
           <option value="urgente">Urgente</option>
         </select>
+      </div>
+      <div>
+        <label>Hora fin (opcional)</label>
+        <input type="time" id="m-horafin" placeholder="10:00">
       </div>
     </div>
 
@@ -720,26 +730,28 @@
     document.getElementById('modalOverlay').classList.remove('visible');
   }
   function sincronizarConCalendario(tarea) {
-    // Solo sincronizar pruebas, trabajos y controles — no tareas simples
-    if (!['prueba','trabajo','control'].includes(tarea.tipo)) return;
     if (!tarea.fecha) return;
     try {
       const eventos = JSON.parse(localStorage.getItem('martin_eventos')) || [];
-      // Evitar duplicados por id
-      const yaExiste = eventos.find(e => e.tareaId === tarea.id);
+      const yaExiste = eventos.find(e => String(e.tareaId) === String(tarea.id));
       if (yaExiste) return;
-      const tipoEvento = tarea.tipo === 'prueba' ? 'prueba' : 'estudio';
-      const horaDefault = tarea.tipo === 'prueba' ? '08:00' : '16:00';
-      const horaFin = tarea.tipo === 'prueba' ? '10:00' : '18:00';
+      // Tipo de evento según tipo de tarea
+      const tipoEv = tarea.tipo === 'prueba' ? 'prueba' : tarea.tipo === 'trabajo' ? 'estudio' : 'bloque';
+      // Hora: usa la hora registrada en la tarea, si no hay usa default según tipo
+      const h1 = tarea.hora || (tarea.tipo === 'prueba' ? '08:00' : '16:00');
+      const h2 = tarea.horaFin || (tarea.tipo === 'prueba' ? '10:00' : '18:00');
+      // Nombre del evento: limpio y legible
+      const nombreEv = tarea.nombre;
       eventos.push({
         id: Date.now() + Math.random(),
         tareaId: tarea.id,
-        nombre: `${tarea.tipo.charAt(0).toUpperCase()+tarea.tipo.slice(1)} — ${tarea.ramo}: ${tarea.nombre}`,
-        tipo: tipoEvento,
+        nombre: nombreEv,
+        tipo: tipoEv,
         fecha: tarea.fecha,
-        inicio: horaDefault,
-        fin: horaFin,
-        notas: tarea.notas || ''
+        inicio: h1,
+        fin: h2,
+        notas: tarea.ramo || tarea.notas || '',
+        desdeTareas: true
       });
       localStorage.setItem('martin_eventos', JSON.stringify(eventos));
     } catch(e) { console.error('Error sincronizando calendario:', e); }
@@ -748,6 +760,8 @@
   function guardarModal() {
     const nombre = document.getElementById('m-nombre').value.trim();
     if (!nombre) { document.getElementById('m-nombre').focus(); return; }
+    const horaInicio = document.getElementById('m-hora')?.value || '';
+    const horaFin = document.getElementById('m-horafin')?.value || '';
     const nueva = {
       id: Date.now(),
       nombre,
@@ -756,6 +770,8 @@
       fecha:    document.getElementById('m-fecha').value,
       urgencia: document.getElementById('m-urgencia').value,
       notas:    document.getElementById('m-notas').value.trim(),
+      hora:     horaInicio,
+      horaFin:  horaFin,
       done: false
     };
     tareas.unshift(nueva);
@@ -764,6 +780,8 @@
     cerrarModalDirecto();
     document.getElementById('m-nombre').value = '';
     document.getElementById('m-notas').value = '';
+    if(document.getElementById('m-hora')) document.getElementById('m-hora').value = '';
+    if(document.getElementById('m-horafin')) document.getElementById('m-horafin').value = '';
     render();
   }
 
