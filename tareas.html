@@ -337,6 +337,25 @@
 
 <!-- LISTA -->
 <section>
+  <!-- BARRA DE PROGRESO VISUAL -->
+  <div id="progressWrap" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:1rem;margin-bottom:10px;display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:500;color:var(--text)" id="progressTitle">Progreso de hoy</span>
+      <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--blue)" id="progressPct">0%</span>
+    </div>
+    <div style="background:var(--bg);border-radius:20px;height:12px;overflow:hidden">
+      <div id="progressBar" style="height:100%;border-radius:20px;background:var(--blue);width:0%;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1)"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px">
+      <span style="font-size:11px;color:var(--muted)" id="progressDone">0 completadas</span>
+      <span style="font-size:11px;color:var(--muted)" id="progressLeft">0 pendientes</span>
+    </div>
+    <!-- Frases motivacionales -->
+    <div id="motivMsg" style="margin-top:8px;font-size:12px;color:var(--blue);font-weight:500;text-align:center;min-height:18px"></div>
+    <!-- Rachas de bloques completados hoy -->
+    <div id="streakDots" style="display:flex;gap:4px;justify-content:center;margin-top:6px;flex-wrap:wrap"></div>
+  </div>
+
   <div class="section-header">
     <span class="section-title">Pendientes</span>
     <span class="section-count" id="cntLabel">3 tareas</span>
@@ -493,13 +512,13 @@
 
     lista.innerHTML = '';
     filtradas.forEach(t => {
+      // Urgencia automática por días restantes — DEBE ir antes de usarse
+      const diasRest = t.fecha ? Math.ceil((new Date(t.fecha+'T12:00:00')-new Date())/(1000*60*60*24)) : 99;
+      const urgenciaEfectiva = t.urgencia==='urgente'||diasRest<=2 ? 'urgente' : t.urgencia==='media'||diasRest<=5 ? 'media' : 'normal';
+
       const div = document.createElement('div');
       div.className = `task-card ${urgenciaEfectiva} ${t.done ? 'done' : ''}`;
       div.setAttribute('data-id', t.id);
-
-      // Urgencia automática por días restantes
-      const diasRest = t.fecha ? Math.ceil((new Date(t.fecha+'T12:00:00')-new Date())/(1000*60*60*24)) : 99;
-      const urgenciaEfectiva = t.urgencia==='urgente'||diasRest<=2 ? 'urgente' : t.urgencia==='media'||diasRest<=5 ? 'media' : 'normal';
       const tagClass = { prueba:'tag-prueba', tarea:'tag-tarea', trabajo:'tag-trabajo', control:'tag-control' }[t.tipo] || 'tag-tarea';
       const tagLabel = { prueba:'Prueba', tarea:'Tarea', trabajo:'Trabajo', control:'Control' }[t.tipo] || t.tipo;
       const uColor   = { urgente:'u-alta', media:'u-media', normal:'u-baja' }[t.urgencia] || 'u-baja';
@@ -550,7 +569,69 @@
   // ── ACCIONES ──
   function toggleDone(id) {
     const t = tareas.find(x => x.id === id);
-    if (t) { t.done = !t.done; guardarTareas(tareas); render(); }
+    if (t) {
+      t.done = !t.done;
+      guardarTareas(tareas);
+      render();
+      actualizarProgreso();
+    }
+  }
+
+  const frasesParcial = [
+    '¡Buena, sigue así! 💪',
+    '¡Ya vas encaminado! 🚀',
+    'Cada tarea cuenta 🎯',
+    '¡No pares ahora! ⚡',
+    '¡Eso es concentración! 🔥',
+  ];
+  const frasesTotal = [
+    '¡CRACK TOTAL! Todo listo 🏆',
+    '¡Misión cumplida, Martín! 🎉',
+    '¡Eres un monstruo! 💥',
+    '¡Todo al día! Mereces descansar 😎',
+  ];
+
+  function actualizarProgreso() {
+    const total = tareas.filter(t => t.tipo !== 'tarea' || true).length;
+    const hechas = tareas.filter(t => t.done).length;
+    const pendientes = total - hechas;
+    const pct = total === 0 ? 0 : Math.round((hechas / total) * 100);
+
+    const wrap = document.getElementById('progressWrap');
+    if (total === 0) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+
+    // Barra y números
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressDone').textContent = hechas + (hechas === 1 ? ' completada' : ' completadas');
+    document.getElementById('progressLeft').textContent = pendientes + (pendientes === 1 ? ' pendiente' : ' pendientes');
+
+    // Color de la barra según avance
+    const bar = document.getElementById('progressBar');
+    if (pct >= 100) bar.style.background = 'var(--green)';
+    else if (pct >= 60) bar.style.background = '#00C896';
+    else if (pct >= 30) bar.style.background = 'var(--blue)';
+    else bar.style.background = 'var(--amber)';
+
+    // Frase motivacional
+    const motivEl = document.getElementById('motivMsg');
+    if (pct === 100) {
+      motivEl.textContent = frasesTotal[Math.floor(Math.random() * frasesTotal.length)];
+      motivEl.style.color = 'var(--green)';
+    } else if (pct > 0) {
+      motivEl.textContent = frasesParcial[Math.floor(Math.random() * frasesParcial.length)];
+      motivEl.style.color = 'var(--blue)';
+    } else {
+      motivEl.textContent = '¡Empieza a tachar tareas! 💪';
+      motivEl.style.color = 'var(--muted)';
+    }
+
+    // Puntitos de rachas — una chispita por cada tarea completada
+    const dots = document.getElementById('streakDots');
+    dots.innerHTML = tareas.map(t =>
+      `<div style="width:10px;height:10px;border-radius:50%;background:${t.done ? 'var(--green)' : 'var(--border)'};transition:background 0.3s" title="${t.nombre}"></div>`
+    ).join('');
   }
 
   let ultimaEliminada = null;
@@ -812,6 +893,7 @@
 
   // Init
   render();
+  actualizarProgreso();
 </script>
 </body>
 </html>
