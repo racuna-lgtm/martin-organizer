@@ -874,13 +874,27 @@
   }
 
   function extraerDia(t) {
+    if (t.includes('mañana')) return 'mañana';
+    if (t.includes('pasado mañana') || t.includes('pasado')) return 'pasado mañana';
+    if (t.includes('hoy')) return 'hoy';
     const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
-    return dias.find(d => t.includes(d)) || 'próximamente';
+    return dias.find(d => t.includes(d)) || 'hoy';
   }
 
   function diaAFecha(dia) {
     const hoy = new Date();
     const diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    // Palabras relativas
+    if (dia === 'mañana') {
+      const m = new Date(hoy); m.setDate(hoy.getDate()+1);
+      return m.toISOString().split('T')[0];
+    }
+    if (dia === 'pasado mañana' || dia === 'pasado') {
+      const p = new Date(hoy); p.setDate(hoy.getDate()+2);
+      return p.toISOString().split('T')[0];
+    }
+    if (dia === 'hoy') return hoyStr();
+    // Días de la semana
     const idx = diasSemana.indexOf(dia);
     if (idx === -1) return hoyStr();
     const actual = hoy.getDay();
