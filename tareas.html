@@ -939,7 +939,44 @@
     if (e.key === 'Escape') cerrarModalDirecto();
   });
 
+  // Migrar tareas viejas con nombres largos al formato limpio
+  function migrarNombres() {
+    let cambios = false;
+    tareas = tareas.map(t => {
+      // Solo migrar si el nombre parece una frase larga (más de 35 chars o empieza con palabras clave)
+      const n = t.nombre.toLowerCase();
+      const esLargo = t.nombre.length > 40;
+      const empiezaFrase = n.startsWith('tengo') || n.startsWith('mañana') ||
+                           n.startsWith('pasado') || n.startsWith('hoy ') ||
+                           n.startsWith('el ') || n.startsWith('la ');
+      if (!esLargo && !empiezaFrase) return t; // nombre ya está bien
+      const ramo = t.ramo && t.ramo !== 'Otro' && t.ramo !== 'ramo' ? t.ramo : '';
+      let nuevoNombre = t.nombre;
+      if (t.tipo === 'prueba') nuevoNombre = ramo ? `Prueba de ${ramo}` : 'Prueba';
+      else if (t.tipo === 'control') nuevoNombre = ramo ? `Control de ${ramo}` : 'Control';
+      else if (t.tipo === 'trabajo') nuevoNombre = ramo ? `Trabajo de ${ramo}` : 'Trabajo';
+      else if (n.includes('estudiar') || n.includes('repasar')) {
+        // Extraer tema
+        const match = n.match(/estudiar (?:para )?(?:la |el |los |las )?(.{2,25})/);
+        const tema = match ? match[1].replace(/mañana|pasado|hoy|el |la |los |las /g,'').trim() : '';
+        nuevoNombre = tema.length > 2
+          ? `Estudiar ${tema.charAt(0).toUpperCase()+tema.slice(1)}`
+          : ramo ? `Estudiar ${ramo}` : 'Bloque de estudio';
+      } else if (esLargo) {
+        // Acortar si es muy largo — guardar original en notas
+        nuevoNombre = t.nombre.slice(0,40).trim();
+      }
+      if (nuevoNombre !== t.nombre) {
+        cambios = true;
+        return { ...t, nombre: nuevoNombre, notas: t.notas || t.nombre };
+      }
+      return t;
+    });
+    if (cambios) guardarTareas(tareas);
+  }
+
   // Init
+  migrarNombres();
   render();
   actualizarProgreso();
 </script>
