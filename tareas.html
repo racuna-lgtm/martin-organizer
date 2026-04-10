@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martín — Tareas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0090F8;
+    --blue-soft: #E6F1FB;
+    --blue-mid: #378ADD;
+    --green: #00C896;
+    --green-soft: #E1F5EE;
+    --green-dark: #085041;
+    --amber: #FFB020;
+    --amber-soft: #FAEEDA;
+    --amber-dark: #633806;
+    --red: #FF4D4D;
+    --red-soft: #FCEBEB;
+    --red-dark: #A32D2D;
+    --bg: #F5F7FA;
+    --white: #FFFFFF;
+    --text: #2A2A2A;
+    --muted: #8890A0;
+    --border: #E2E5EC;
+    --surface: #EDEEF5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100dvh;
+    padding-bottom: 90px;
+    color: var(--text);
+  }
+
+  /* HEADER */
+  header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top:0; z-index:10;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 800; letter-spacing: -0.3px;
+  }
+  .btn-voz-header {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--blue); border: none; border-radius: 20px;
+    padding: 6px 14px; color: white; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s ease; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-voz-header:active { transform: scale(0.95); }
+  .btn-voz-header.listening { background: var(--green); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,200,150,0.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(0,200,150,0); }
+  }
+  .btn-voz-header svg { width:14px; height:14px; fill:white; }
+
+  /* TRANSCRIPT */
+  .transcript-box {
+    margin: 0.75rem 1.25rem 0;
+    background: var(--white); border: 1px solid var(--blue);
+    border-radius: 12px; padding: 0.75rem 1rem;
+    font-size: 14px; color: var(--text);
+    display: none; animation: fadeIn 0.2s ease;
+  }
+  .transcript-box.visible { display: block; }
+  .transcript-hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* FILTROS */
+  .filtros {
+    padding: 1rem 1.25rem 0;
+    display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  }
+  .filtros::-webkit-scrollbar { display: none; }
+  .filtro-btn {
+    flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--white);
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all 0.15s ease; font-family: 'DM Sans', sans-serif;
+  }
+  .filtro-btn.active {
+    background: var(--blue); border-color: var(--blue); color: white;
+  }
+
+  /* INPUT MANUAL */
+  .input-area {
+    padding: 0.75rem 1.25rem 0;
+    display: flex; gap: 8px;
+  }
+  .input-tarea {
+    flex: 1; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 12px;
+    font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text);
+    background: var(--white); outline: none;
+    transition: border-color 0.15s;
+  }
+  .input-tarea:focus { border-color: var(--blue); }
+  .input-tarea::placeholder { color: var(--muted); }
+  .btn-agregar {
+    padding: 10px 16px; border-radius: 12px;
+    background: var(--blue); border: none; color: white;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-agregar:active { transform: scale(0.95); }
+
+  /* SECCIÓN */
+  section { padding: 1rem 1.25rem 0; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .section-count {
+    font-size: 12px; color: var(--muted); font-weight: 400;
+  }
+
+  /* TASK CARD */
+  .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .task-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1rem;
+    display: flex; gap: 12px; align-items: flex-start;
+    transition: all 0.15s ease; animation: fadeIn 0.3s ease both;
+    position: relative; overflow: hidden;
+  }
+  .task-card:hover { border-color: var(--blue-mid); }
+  .task-card.done { opacity: 0.6; }
+  .task-card.urgente { border-left: 3px solid var(--red); }
+  .task-card.media   { border-left: 3px solid var(--amber); }
+  .task-card.normal  { border-left: 3px solid var(--blue); }
+
+  .task-check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--border); flex-shrink: 0;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    margin-top: 1px; transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .task-card.done .task-check {
+    background: var(--green); border-color: var(--green);
+  }
+  .task-card.done .task-check::after {
+    content: ''; width: 6px; height: 10px;
+    border: 2px solid white; border-top: none; border-left: none;
+    transform: rotate(45deg) translate(-1px,-1px); display: block;
+  }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .task-nombre {
+    font-size: 14px; font-weight: 500; color: var(--text);
+    line-height: 1.4;
+  }
+  .task-card.done .task-nombre { text-decoration: line-through; color: var(--muted); }
+
+  .task-tag {
+    font-size: 11px; font-weight: 500; padding: 2px 8px;
+    border-radius: 20px; flex-shrink: 0; white-space: nowrap;
+  }
+  .tag-prueba  { background: var(--red-soft);   color: var(--red-dark); }
+  .tag-tarea   { background: var(--blue-soft);  color: var(--blue-mid); }
+  .tag-trabajo { background: var(--amber-soft); color: var(--amber-dark); }
+  .tag-control { background: var(--green-soft); color: var(--green-dark); }
+
+  .task-meta {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 6px; flex-wrap: wrap;
+  }
+  .meta-chip {
+    font-size: 12px; color: var(--muted); font-weight: 300;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .meta-chip svg { width:11px; height:11px; stroke: var(--muted); fill:none; }
+
+  .urgencia-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .u-alta  { background: var(--red); }
+  .u-media { background: var(--amber); }
+  .u-baja  { background: var(--green); }
+
+  .task-actions {
+    display: flex; gap: 6px; margin-top: 8px;
+  }
+  .btn-mini {
+    font-size: 11px; font-weight: 500; padding: 3px 10px;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--muted); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.12s;
+  }
+  .btn-mini:hover { border-color: var(--red); color: var(--red); }
+  .btn-mini.pomo:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* VACÍO */
+  .empty-state {
+    text-align: center; padding: 2.5rem 1rem;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .empty-icon { font-size: 36px; }
+  .empty-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+  .empty-sub { font-size: 13px; color: var(--muted); font-weight: 300; }
+
+  /* MODAL AGREGAR */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 100;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 24px 24px 0 0;
+    padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+    width: 100%; max-width: 480px;
+    animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 36px; height: 4px; background: var(--border);
+    border-radius: 2px; margin: 0 auto 1.25rem;
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+    margin-bottom: 1.25rem;
+  }
+  .modal label { font-size: 12px; color: var(--muted); font-weight: 500; display: block; margin-bottom: 4px; }
+  .modal input, .modal select {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); font-size: 14px;
+    font-family: 'DM Sans', sans-serif; color: var(--text);
+    background: var(--bg); outline: none; margin-bottom: 12px;
+    transition: border-color 0.15s;
+  }
+  .modal input:focus, .modal select:focus { border-color: var(--blue); background: var(--white); }
+  .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-guardar {
+    width: 100%; padding: 12px; border-radius: 14px;
+    background: var(--blue); border: none; color: white;
+    font-size: 15px; font-weight: 500; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; margin-top: 4px;
+    transition: all 0.15s;
+  }
+  .btn-guardar:active { transform: scale(0.98); }
+  .btn-cancelar {
+    width: 100%; padding: 10px; border-radius: 14px;
+    background: transparent; border: none; color: var(--muted);
+    font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 6px;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; bottom:0; left:0; right:0;
+    background: var(--white); border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around;
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+    z-index:10;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 16px; border-radius: 12px; cursor: pointer;
+    text-decoration: none; border: none; background: transparent;
+  }
+  .nav-item svg { width:22px; height:22px; }
+  .nav-item span { font-size:10px; font-weight:500; color:var(--muted); }
+  .nav-item.active span { color:var(--blue); }
+  .nav-item.active svg { stroke:var(--blue); }
+  .nav-item:not(.active) svg { stroke:var(--muted); }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .fab {
+    position: fixed; bottom: 80px; right: 1.25rem;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--blue); border: none; color: white;
+    font-size: 24px; cursor: pointer; z-index: 9;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,144,248,0.35);
+    transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  }
+  .fab:hover { transform: scale(1.08); }
+  .fab:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <h1>Mis tareas</h1>
+  <button class="btn-voz-header" id="vozBtn" onclick="toggleVoz()">
+    <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-6 8a7 7 0 0 0 14 0h-2a5 5 0 0 1-10 0H5zm7 9v-2h-2v2H8v2h8v-2h-2z"/></svg>
+    Hablar
+  </button>
+</header>
+
+<!-- TRANSCRIPT -->
+<div class="transcript-box" id="transcriptBox">
+  <div id="transcriptText">...</div>
+  <div class="transcript-hint" id="transcriptHint"></div>
+</div>
+
+<!-- FILTROS -->
+<div class="filtros">
+  <button class="filtro-btn active" onclick="filtrar('todas', this)">Todas</button>
+  <button class="filtro-btn" onclick="filtrar('hoy', this)">Hoy</button>
+  <button class="filtro-btn" onclick="filtrar('prueba', this)">Pruebas</button>
+  <button class="filtro-btn" onclick="filtrar('tarea', this)">Tareas</button>
+  <button class="filtro-btn" onclick="filtrar('trabajo', this)">Trabajos</button>
+  <button class="filtro-btn" onclick="filtrar('urgente', this)">Urgentes</button>
+  <button class="filtro-btn" onclick="filtrar('hechas', this)">Completadas</button>
+</div>
+
+<!-- INPUT RÁPIDO -->
+<div class="input-area">
+  <input class="input-tarea" id="inputRapido" placeholder="Escribe una tarea rápida..." onkeydown="if(event.key==='Enter') agregarRapido()">
+  <button class="btn-agregar" onclick="agregarRapido()">+ Agregar</button>
+</div>
+
+<!-- LISTA -->
+<section>
+  <div class="section-header">
+    <span class="section-title">Pendientes</span>
+    <span class="section-count" id="cntLabel">3 tareas</span>
+  </div>
+  <div class="task-list" id="taskList"></div>
+</section>
+
+<!-- FAB -->
+<button class="fab" onclick="abrirModal()" title="Nueva tarea detallada">+</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nueva tarea</div>
+
+    <label>¿Qué tienes que hacer?</label>
+    <input type="text" id="m-nombre" placeholder="Ej: Estudiar electromagnetismo">
+
+    <div class="modal-row">
+      <div>
+        <label>Ramo</label>
+        <select id="m-ramo">
+          <option>Física</option>
+          <option>Matemáticas</option>
+          <option>Historia</option>
+          <option>Lenguaje</option>
+          <option>Inglés</option>
+          <option>Química</option>
+          <option>Biología</option>
+          <option>Filosofía</option>
+          <option>Ed. Física</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div>
+        <label>Tipo</label>
+        <select id="m-tipo">
+          <option value="tarea">Tarea</option>
+          <option value="prueba">Prueba</option>
+          <option value="trabajo">Trabajo</option>
+          <option value="control">Control</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-row">
+      <div>
+        <label>Fecha límite</label>
+        <input type="date" id="m-fecha">
+      </div>
+      <div>
+        <label>Urgencia</label>
+        <select id="m-urgencia">
+          <option value="normal">Normal</option>
+          <option value="media">Media</option>
+          <option value="urgente">Urgente</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Notas extra (opcional)</label>
+    <input type="text" id="m-notas" placeholder="Ej: Con Tomás y Camila, cap. 3-5...">
+
+    <button class="btn-guardar" onclick="guardarModal()">Guardar tarea</button>
+    <button class="btn-cancelar" onclick="cerrarModalDirecto()">Cancelar</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-item" onclick="window.location='dashboard.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Inicio</span>
+  </button>
+  <button class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span>Tareas</span>
+  </button>
+  <button class="nav-item" onclick="window.location='calendario.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Calendario</span>
+  </button>
+  <button class="nav-item" onclick="window.location='pomodoro.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Pomodoro</span>
+  </button>
+  <button class="nav-item" onclick="window.location='notas.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Notas</span>
+  </button>
+</nav>
+
+<script>
+  // ── DATOS ──
+  const STORAGE_KEY = 'martin_tareas';
+
+  function cargarTareas() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || datosEjemplo(); }
+    catch { return datosEjemplo(); }
+  }
+
+  function guardarTareas(lista) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+  }
+
+  function datosEjemplo() {
+    const hoy = new Date();
+    const fmt = d => d.toISOString().split('T')[0];
+    const manana = new Date(hoy); manana.setDate(hoy.getDate()+1);
+    const jueves = new Date(hoy); jueves.setDate(hoy.getDate()+3);
+    return [
+      { id:1, nombre:'Estudiar electromagnetismo', ramo:'Física', tipo:'tarea', fecha:fmt(hoy), urgencia:'urgente', notas:'Capítulos 4 y 5', done:false },
+      { id:2, nombre:'Prueba de Historia de Chile', ramo:'Historia', tipo:'prueba', fecha:fmt(jueves), urgencia:'alta', notas:'Desde la independencia hasta 1900', done:false },
+      { id:3, nombre:'Trabajo grupal de Lenguaje', ramo:'Lenguaje', tipo:'trabajo', fecha:fmt(manana), urgencia:'media', notas:'Con Tomás y Camila', done:false },
+      { id:4, nombre:'Ejercicios de funciones', ramo:'Matemáticas', tipo:'tarea', fecha:fmt(hoy), urgencia:'normal', notas:'', done:true },
+    ];
+  }
+
+  let tareas = cargarTareas();
+  let filtroActivo = 'todas';
+
+  // ── RENDER ──
+  function render() {
+    const lista = document.getElementById('taskList');
+    let filtradas = tareas.filter(t => {
+      if (filtroActivo === 'hechas')   return t.done;
+      if (filtroActivo === 'hoy')      return !t.done && t.fecha === hoyStr();
+      if (filtroActivo === 'urgente')  return !t.done && t.urgencia === 'urgente';
+      if (filtroActivo === 'prueba')   return !t.done && t.tipo === 'prueba';
+      if (filtroActivo === 'tarea')    return !t.done && t.tipo === 'tarea';
+      if (filtroActivo === 'trabajo')  return !t.done && t.tipo === 'trabajo';
+      return !t.done || filtroActivo === 'todas';
+    });
+
+    if (filtradas.length === 0) {
+      lista.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">¡Todo al día!</div>
+        <div class="empty-sub">No hay tareas en esta categoría</div>
+      </div>`;
+      document.getElementById('cntLabel').textContent = '0 tareas';
+      return;
+    }
+
+    document.getElementById('cntLabel').textContent =
+      filtradas.length + (filtradas.length === 1 ? ' tarea' : ' tareas');
+
+    lista.innerHTML = '';
+    filtradas.forEach(t => {
+      const div = document.createElement('div');
+      div.className = `task-card ${t.urgencia} ${t.done ? 'done' : ''}`;
+      div.setAttribute('data-id', t.id);
+
+      const tagClass = { prueba:'tag-prueba', tarea:'tag-tarea', trabajo:'tag-trabajo', control:'tag-control' }[t.tipo] || 'tag-tarea';
+      const tagLabel = { prueba:'Prueba', tarea:'Tarea', trabajo:'Trabajo', control:'Control' }[t.tipo] || t.tipo;
+      const uColor   = { urgente:'u-alta', media:'u-media', normal:'u-baja' }[t.urgencia] || 'u-baja';
+      const uLabel   = { urgente:'Urgente', media:'Media', normal:'Normal' }[t.urgencia] || '';
+      const fechaLabel = t.fecha ? formatFecha(t.fecha) : '';
+
+      div.innerHTML = `
+        <div class="task-check" onclick="toggleDone(${t.id})"></div>
+        <div class="task-body">
+          <div class="task-top">
+            <div class="task-nombre">${t.nombre}</div>
+            <span class="task-tag ${tagClass}">${tagLabel}</span>
+          </div>
+          <div class="task-meta">
+            <span class="meta-chip">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              ${t.ramo}
+            </span>
+            ${fechaLabel ? `<span class="meta-chip">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${fechaLabel}
+            </span>` : ''}
+            <span class="meta-chip"><div class="urgencia-dot ${uColor}"></div>${uLabel}</span>
+            ${t.notas ? `<span class="meta-chip">${t.notas}</span>` : ''}
+          </div>
+          ${!t.done ? `<div class="task-actions">
+            <button class="btn-mini pomo" onclick="iniciarPomo(${t.id})">⏱ Estudiar ahora</button>
+            <button class="btn-mini" onclick="eliminar(${t.id})">Eliminar</button>
+          </div>` : ''}
+        </div>
+      `;
+      lista.appendChild(div);
+    });
+  }
+
+  function hoyStr() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  function formatFecha(str) {
+    const d = new Date(str + 'T12:00:00');
+    const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
+    const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+  }
+
+  // ── ACCIONES ──
+  function toggleDone(id) {
+    const t = tareas.find(x => x.id === id);
+    if (t) { t.done = !t.done; guardarTareas(tareas); render(); }
+  }
+
+  function eliminar(id) {
+    tareas = tareas.filter(x => x.id !== id);
+    guardarTareas(tareas); render();
+  }
+
+  function iniciarPomo(id) {
+    localStorage.setItem('martin_pomo_tarea', tareas.find(x=>x.id===id)?.nombre || '');
+    window.location = 'pomodoro.html';
+  }
+
+  function filtrar(tipo, btn) {
+    filtroActivo = tipo;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  function agregarRapido() {
+    const input = document.getElementById('inputRapido');
+    const val = input.value.trim();
+    if (!val) return;
+    const nueva = {
+      id: Date.now(), nombre: val,
+      ramo: extraerRamo(val.toLowerCase()),
+      tipo: extraerTipo(val.toLowerCase()),
+      fecha: hoyStr(), urgencia: 'normal', notas: '', done: false
+    };
+    tareas.unshift(nueva);
+    guardarTareas(tareas);
+    input.value = '';
+    filtroActivo = 'todas';
+    document.querySelectorAll('.filtro-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    render();
+  }
+
+  // ── MODAL ──
+  function abrirModal() {
+    document.getElementById('m-fecha').value = hoyStr();
+    document.getElementById('modalOverlay').classList.add('visible');
+  }
+  function cerrarModal(e) {
+    if (e.target === document.getElementById('modalOverlay')) cerrarModalDirecto();
+  }
+  function cerrarModalDirecto() {
+    document.getElementById('modalOverlay').classList.remove('visible');
+  }
+  function guardarModal() {
+    const nombre = document.getElementById('m-nombre').value.trim();
+    if (!nombre) { document.getElementById('m-nombre').focus(); return; }
+    const nueva = {
+      id: Date.now(),
+      nombre,
+      ramo:     document.getElementById('m-ramo').value,
+      tipo:     document.getElementById('m-tipo').value,
+      fecha:    document.getElementById('m-fecha').value,
+      urgencia: document.getElementById('m-urgencia').value,
+      notas:    document.getElementById('m-notas').value.trim(),
+      done: false
+    };
+    tareas.unshift(nueva);
+    guardarTareas(tareas);
+    cerrarModalDirecto();
+    document.getElementById('m-nombre').value = '';
+    document.getElementById('m-notas').value = '';
+    render();
+  }
+
+  // ── VOZ ──
+  let recognition = null;
+  let vozActiva = false;
+
+  function toggleVoz() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Reconocimiento de voz no disponible. Usa Chrome o Safari.'); return;
+    }
+    if (vozActiva) { recognition && recognition.stop(); return; }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'es-CL';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      vozActiva = true;
+      document.getElementById('vozBtn').classList.add('listening');
+      document.getElementById('vozBtn').childNodes[2].textContent = ' Escuchando...';
+      document.getElementById('transcriptBox').classList.add('visible');
+      document.getElementById('transcriptText').textContent = '🎙 Habla ahora...';
+      document.getElementById('transcriptHint').textContent = '';
+    };
+
+    recognition.onresult = (e) => {
+      const txt = Array.from(e.results).map(r => r[0].transcript).join('');
+      document.getElementById('transcriptText').textContent = txt;
+    };
+
+    recognition.onend = () => {
+      vozActiva = false;
+      document.getElementById('vozBtn').classList.remove('listening');
+      document.getElementById('vozBtn').childNodes[2].textContent = ' Hablar';
+      const txt = document.getElementById('transcriptText').textContent;
+      if (txt && txt !== '🎙 Habla ahora...') procesarVoz(txt);
+    };
+
+    recognition.onerror = () => {
+      vozActiva = false;
+      document.getElementById('vozBtn').classList.remove('listening');
+      document.getElementById('transcriptText').textContent = 'Error al escuchar. Intenta de nuevo.';
+    };
+
+    recognition.start();
+  }
+
+  function procesarVoz(texto) {
+    const t = texto.toLowerCase();
+    const ramo = extraerRamo(t);
+    const tipo = extraerTipo(t);
+    const dia  = extraerDia(t);
+    const fecha = diaAFecha(dia);
+    const urgencia = t.includes('urgente') || t.includes('mañana') ? 'urgente' :
+                     t.includes('importante') ? 'media' : 'normal';
+
+    const nueva = {
+      id: Date.now(), nombre: capitalizar(texto.trim()),
+      ramo, tipo, fecha, urgencia, notas: '', done: false
+    };
+    tareas.unshift(nueva);
+    guardarTareas(tareas);
+
+    document.getElementById('transcriptText').textContent = `✅ Agregada: "${nueva.nombre}"`;
+    document.getElementById('transcriptHint').textContent = `${tipo} de ${ramo} · ${dia}`;
+
+    setTimeout(() => {
+      document.getElementById('transcriptBox').classList.remove('visible');
+    }, 3500);
+
+    filtroActivo = 'todas';
+    document.querySelectorAll('.filtro-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    render();
+  }
+
+  function extraerRamo(t) {
+    const r = ['física','matemáticas','matemática','historia','lenguaje','inglés','química','biología','filosofía','educación física'];
+    return capitalizar(r.find(x => t.includes(x)) || 'otro');
+  }
+
+  function extraerTipo(t) {
+    if (t.includes('prueba') || t.includes('examen') || t.includes('certamen')) return 'prueba';
+    if (t.includes('trabajo')) return 'trabajo';
+    if (t.includes('control')) return 'control';
+    return 'tarea';
+  }
+
+  function extraerDia(t) {
+    const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+    return dias.find(d => t.includes(d)) || 'próximamente';
+  }
+
+  function diaAFecha(dia) {
+    const hoy = new Date();
+    const diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const idx = diasSemana.indexOf(dia);
+    if (idx === -1) return hoyStr();
+    const actual = hoy.getDay();
+    let diff = idx - actual;
+    if (diff <= 0) diff += 7;
+    const target = new Date(hoy);
+    target.setDate(hoy.getDate() + diff);
+    return target.toISOString().split('T')[0];
+  }
+
+  function capitalizar(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // Teclado Enter en modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') cerrarModalDirecto();
+  });
+
+  // Init
+  render();
+</script>
+</body>
+</html>
