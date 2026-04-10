@@ -224,7 +224,16 @@ function fmtLabel(str){const d=new Date(str+'T12:00:00');return `${DIAS_N[d.getD
 function getEventos(){
   // Eventos propios del calendario
   let evPropios;
-  try { evPropios = JSON.parse(localStorage.getItem('martin_eventos')) || []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem('martin_eventos')) || [];
+    // Filtrar eventos antiguos (anteriores a 2026) que pueden haberse guardado como ejemplos
+    const hoyYear = new Date().getFullYear();
+    evPropios = raw.filter(e => {
+      if (!e.fecha) return false;
+      const año = parseInt(e.fecha.split('-')[0]);
+      return año >= hoyYear; // solo eventos de este año en adelante
+    });
+  }
   catch { evPropios = []; }
   if (evPropios.length === 0) evPropios = eventosEjemplo();
 
@@ -292,7 +301,7 @@ function renderCalendario(){
   for(let i=startDay-1;i>=0;i--){const d=document.createElement('div');d.className='cal-day otro-mes';d.innerHTML=`<div class="day-num">${prevUltimo-i}</div>`;grid.appendChild(d);}
   for(let d=1;d<=ultimoDia;d++){
     const mm=String(m+1).padStart(2,'0'),dd=String(d).padStart(2,'0');
-    const fecha=`${y}-${mm}-${dd}`,esHoy=fecha===fmt(hoy),esSel=fecha===fmt(diaSeleccionado);
+    const fecha=`${y}-${mm}-${dd}`,esHoy=fecha===_hoyStr,esSel=fecha===_diaSelStr;
     const evDia=eventos.filter(e=>e.fecha===fecha);
     const day=document.createElement('div');
     day.className=`cal-day${esHoy?' hoy':''}${esSel?' selected':''}`;
@@ -307,12 +316,17 @@ function renderCalendario(){
 }
 
 function seleccionarDia(fecha){
-  // Guardar como string para evitar timezone shifts
   diaSeleccionado=new Date(fecha+'T12:00:00');
-  _diaSelStr=fecha; // string puro para comparaciones
+  _diaSelStr=fecha;
   vista='dia';
   document.querySelectorAll('.vista-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
-  renderCalendario();renderEventos();
+  renderCalendario();
+  renderEventos();
+  // Scroll suave a la sección de eventos
+  setTimeout(()=>{
+    const ev=document.querySelector('.eventos-section');
+    if(ev) ev.scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
 }
 function cambiarMes(d){viewDate.setMonth(viewDate.getMonth()+d);renderCalendario();}
 function irHoy(){viewDate=new Date();diaSeleccionado=new Date();renderCalendario();renderEventos();}
@@ -326,12 +340,20 @@ function renderEventos(){
   if(vista==='dia'){
     const fechaDia = typeof _diaSelStr!=='undefined' ? _diaSelStr : fechaSel;
     evF=eventos.filter(e=>e.fecha===fechaDia).sort((a,b)=>a.inicio.localeCompare(b.inicio));
-    document.getElementById('eventosFecha').textContent=fmtLabel(fechaDia);
+    const efEl=document.getElementById('eventosFecha');
+    efEl.textContent=fmtLabel(fechaDia);
+    efEl.style.color=evF.length>0?'var(--blue)':'';
   }
   else if(vista==='semana'){const ini=new Date(diaSeleccionado),dia=ini.getDay()||7;ini.setDate(ini.getDate()-dia+1);const fin=new Date(ini);fin.setDate(ini.getDate()+6);evF=eventos.filter(e=>{const f=new Date(e.fecha+'T12:00:00');return f>=ini&&f<=fin;}).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.inicio.localeCompare(b.inicio));const ini2=new Date(ini),fin2=new Date(fin);document.getElementById('eventosFecha').textContent=`Semana del ${ini2.getDate()} al ${fin2.getDate()} de ${MESES_C[fin2.getMonth()]}`;}
   else{const hoyD=hoyStr();evF=eventos.filter(e=>e.fecha>=hoyD).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.inicio.localeCompare(b.inicio)).slice(0,10);document.getElementById('eventosFecha').textContent='Próximos eventos';}
   document.getElementById('eventosCount').textContent=evF.length?`${evF.length} evento${evF.length>1?'s':''}`:'' ;
-  if(!evF.length){lista.innerHTML=`<div class="empty-dia">📅 Sin eventos — usa el botón de voz o + Evento</div>`;return;}
+  if(!evF.length){
+    lista.innerHTML=`<div class="empty-dia">
+      <div style="font-size:28px;margin-bottom:8px">📅</div>
+      <div style="font-weight:500;margin-bottom:4px">Sin eventos para este día</div>
+      <div style="font-size:12px;color:var(--muted)">Haz clic en + Evento o usa el botón de voz</div>
+    </div>`;return;
+  }
   const colores={estudio:'var(--blue)',prueba:'var(--red)',bloque:'var(--green)',personal:'var(--purple)',otro:'var(--muted)'};
   const tagC={estudio:'tag-estudio',prueba:'tag-prueba',bloque:'tag-bloque',personal:'tag-personal',otro:'tag-otro'};
   const tagL={estudio:'Estudio',prueba:'Prueba',bloque:'Bloque',personal:'Personal',otro:'Otro'};
@@ -431,6 +453,17 @@ function procesarVozCal(texto){
 
 function mostrarNotif(msg){const n=document.getElementById('notif');n.textContent=msg;n.classList.add('visible');setTimeout(()=>n.classList.remove('visible'),3000);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarModalDirecto();});
+
+// Limpiar eventos guardados de años anteriores al iniciar
+try {
+  const raw = JSON.parse(localStorage.getItem('martin_eventos')) || [];
+  const hoyY = new Date().getFullYear();
+  const validos = raw.filter(e => e.fecha && parseInt(e.fecha.split('-')[0]) >= hoyY);
+  if (validos.length !== raw.length) {
+    localStorage.setItem('martin_eventos', JSON.stringify(validos));
+    console.log(`Limpiados ${raw.length - validos.length} eventos de años anteriores`);
+  }
+} catch(e) {}
 
 renderCalendario();renderEventos();
 </script>
