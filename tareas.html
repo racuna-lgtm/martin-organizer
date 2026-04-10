@@ -832,18 +832,42 @@
     recognition.start();
   }
 
+  function generarNombreLimpio(tipo, ramo, texto) {
+    const t = texto.toLowerCase();
+    const ramoDisplay = ramo !== 'Otro' ? ramo : '';
+    // Generar nombre limpio según tipo
+    if (tipo === 'prueba') return ramoDisplay ? `Prueba de ${ramoDisplay}` : 'Prueba';
+    if (tipo === 'control') return ramoDisplay ? `Control de ${ramoDisplay}` : 'Control';
+    if (tipo === 'trabajo') return ramoDisplay ? `Trabajo de ${ramoDisplay}` : 'Trabajo';
+    // Para tareas: extraer qué hay que estudiar/hacer
+    if (t.includes('estudiar') || t.includes('repasar') || t.includes('revisar')) {
+      // Buscar el tema después de "estudiar para" o "estudiar"
+      const match = t.match(/estudiar (?:para )?(?:la |el |los |las )?(.+)/);
+      if (match) {
+        const tema = match[1].replace(/mañana|pasado|hoy|el |la |los |las /g,'').trim();
+        if (tema.length > 2) return `Estudiar ${capitalizar(tema)}`;
+      }
+    }
+    if (t.includes('entregar')) return ramoDisplay ? `Entregar tarea de ${ramoDisplay}` : 'Entregar tarea';
+    if (t.includes('leer') || t.includes('lectura')) return ramoDisplay ? `Lectura de ${ramoDisplay}` : 'Lectura';
+    // Si no se puede simplificar, capitalizar el texto original pero acortarlo
+    const limpio = capitalizar(texto.trim());
+    return limpio.length > 50 ? limpio.slice(0,47)+'...' : limpio;
+  }
+
   function procesarVoz(texto) {
     const t = texto.toLowerCase();
     const ramo = extraerRamo(t);
     const tipo = extraerTipo(t);
     const dia  = extraerDia(t);
     const fecha = diaAFecha(dia);
-    const urgencia = t.includes('urgente') || t.includes('mañana') ? 'urgente' :
-                     t.includes('importante') ? 'media' : 'normal';
+    const urgencia = t.includes('urgente') ? 'urgente' :
+                     t.includes('importante') || dia === 'mañana' || dia === 'pasado mañana' ? 'media' : 'normal';
+    const nombreLimpio = generarNombreLimpio(tipo, ramo, texto);
 
     const nueva = {
-      id: Date.now(), nombre: capitalizar(texto.trim()),
-      ramo, tipo, fecha, urgencia, notas: '', done: false
+      id: Date.now(), nombre: nombreLimpio,
+      ramo, tipo, fecha, urgencia, notas: capitalizar(texto.trim()), done: false
     };
     tareas.unshift(nueva);
     guardarTareas(tareas);
@@ -874,27 +898,28 @@
   }
 
   function extraerDia(t) {
-    if (t.includes('mañana')) return 'mañana';
-    if (t.includes('pasado mañana') || t.includes('pasado')) return 'pasado mañana';
+    // IMPORTANTE: verificar "pasado mañana" ANTES que "mañana"
+    if (t.includes('pasado mañana') || t.includes('pasado manana')) return 'pasado mañana';
+    if (t.includes('mañana') || t.includes('manana')) return 'mañana';
     if (t.includes('hoy')) return 'hoy';
     const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
     return dias.find(d => t.includes(d)) || 'hoy';
   }
 
   function diaAFecha(dia) {
-    const hoy = new Date();
+    // Usar string para evitar timezone issues
+    const hoyParts = hoyStr().split('-');
+    const hoy = new Date(parseInt(hoyParts[0]), parseInt(hoyParts[1])-1, parseInt(hoyParts[2]));
     const diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-    // Palabras relativas
+    if (dia === 'hoy') return hoyStr();
     if (dia === 'mañana') {
       const m = new Date(hoy); m.setDate(hoy.getDate()+1);
-      return m.toISOString().split('T')[0];
+      return `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}-${String(m.getDate()).padStart(2,'0')}`;
     }
-    if (dia === 'pasado mañana' || dia === 'pasado') {
+    if (dia === 'pasado mañana') {
       const p = new Date(hoy); p.setDate(hoy.getDate()+2);
-      return p.toISOString().split('T')[0];
+      return `${p.getFullYear()}-${String(p.getMonth()+1).padStart(2,'0')}-${String(p.getDate()).padStart(2,'0')}`;
     }
-    if (dia === 'hoy') return hoyStr();
-    // Días de la semana
     const idx = diasSemana.indexOf(dia);
     if (idx === -1) return hoyStr();
     const actual = hoy.getDay();
@@ -902,7 +927,7 @@
     if (diff <= 0) diff += 7;
     const target = new Date(hoy);
     target.setDate(hoy.getDate() + diff);
-    return target.toISOString().split('T')[0];
+    return `${target.getFullYear()}-${String(target.getMonth()+1).padStart(2,'0')}-${String(target.getDate()).padStart(2,'0')}`;
   }
 
   function capitalizar(str) {
