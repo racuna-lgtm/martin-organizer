@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Martín — Notas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:#0090F8; --blue-soft:#E6F1FB; --blue-mid:#378ADD;
+    --green:#00C896; --green-soft:#E1F5EE; --green-dark:#085041;
+    --amber:#FFB020; --amber-soft:#FAEEDA; --amber-dark:#633806;
+    --red:#FF4D4D; --red-soft:#FCEBEB; --red-dark:#A32D2D;
+    --bg:#F5F7FA; --white:#FFFFFF; --text:#2A2A2A; --muted:#8890A0; --border:#E2E5EC;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); min-height:100dvh; padding-bottom:90px; color:var(--text); }
+
+  /* HEADER */
+  header { background:var(--white); border-bottom:1px solid var(--border); padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
+  header h1 { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; letter-spacing:-0.3px; }
+  .btn-agregar-nota { display:flex; align-items:center; gap:6px; background:var(--blue); border:none; border-radius:20px; padding:6px 14px; font-size:13px; font-weight:500; color:white; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
+  .btn-agregar-nota:active { transform:scale(0.95); }
+
+  /* PROMEDIO BANNER */
+  .promedio-banner { margin:1rem 1.25rem 0; background:var(--blue); border-radius:20px; padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+  .prom-left { display:flex; flex-direction:column; gap:2px; }
+  .prom-label { font-size:12px; color:rgba(255,255,255,0.75); font-weight:300; }
+  .prom-valor { font-family:'Syne',sans-serif; font-size:48px; font-weight:800; color:white; letter-spacing:-3px; line-height:1; }
+  .prom-sub { font-size:12px; color:rgba(255,255,255,0.7); font-weight:300; }
+  .prom-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .prom-badge { background:rgba(255,255,255,0.2); border-radius:20px; padding:4px 12px; font-size:12px; color:white; font-weight:500; }
+  .prom-riesgo { background:var(--red-soft); border-radius:12px; padding:6px 12px; font-size:12px; font-weight:500; color:var(--red-dark); display:flex; align-items:center; gap:4px; }
+
+  /* SEMÁFORO RESUMEN */
+  .semaforo-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:1rem 1.25rem 0; }
+  .sem-card { border-radius:14px; padding:0.875rem; text-align:center; border:1px solid transparent; }
+  .sem-card.verde  { background:var(--green-soft); border-color:var(--green); }
+  .sem-card.amarillo { background:var(--amber-soft); border-color:var(--amber); }
+  .sem-card.rojo   { background:var(--red-soft); border-color:var(--red); }
+  .sem-num { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
+  .sem-card.verde  .sem-num { color:var(--green-dark); }
+  .sem-card.amarillo .sem-num { color:var(--amber-dark); }
+  .sem-card.rojo   .sem-num { color:var(--red-dark); }
+  .sem-lbl { font-size:11px; font-weight:500; margin-top:2px; }
+  .sem-card.verde  .sem-lbl { color:var(--green-dark); }
+  .sem-card.amarillo .sem-lbl { color:var(--amber-dark); }
+  .sem-card.rojo   .sem-lbl { color:var(--red-dark); }
+
+  /* SECCIÓN */
+  section { padding:1rem 1.25rem 0; }
+  .section-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem; }
+
+  /* RAMO CARD */
+  .ramo-card { background:var(--white); border:1px solid var(--border); border-radius:18px; margin-bottom:10px; overflow:hidden; animation:fadeIn 0.3s ease both; transition:border-color 0.15s; }
+  .ramo-card:hover { border-color:var(--blue-mid); }
+  .ramo-header { padding:1rem 1.25rem; display:flex; align-items:center; gap:12px; cursor:pointer; }
+  .semaforo-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .s-verde   { background:var(--green); }
+  .s-amarillo { background:var(--amber); }
+  .s-rojo    { background:var(--red); }
+  .ramo-info { flex:1; min-width:0; }
+  .ramo-nombre { font-size:15px; font-weight:500; color:var(--text); }
+  .ramo-meta { font-size:12px; color:var(--muted); font-weight:300; margin-top:2px; }
+  .ramo-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+  .ramo-promedio { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; letter-spacing:-1px; }
+  .p-verde   { color:var(--green); }
+  .p-amarillo { color:var(--amber); }
+  .p-rojo    { color:var(--red); }
+  .ramo-tendencia { font-size:13px; }
+  .ramo-expand { font-size:12px; color:var(--blue); font-weight:500; }
+  .ramo-toggle { width:20px; height:20px; border-radius:50%; border:1px solid var(--border); background:var(--bg); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+  .ramo-toggle svg { width:10px; height:10px; stroke:var(--muted); fill:none; stroke-width:2.5; stroke-linecap:round; transition:transform 0.2s; }
+  .ramo-card.open .ramo-toggle svg { transform:rotate(180deg); }
+
+  /* DETALLE RAMO */
+  .ramo-detail { display:none; border-top:1px solid var(--border); padding:1rem 1.25rem; }
+  .ramo-card.open .ramo-detail { display:block; }
+
+  /* SUGERENCIA IA */
+  .sugerencia-ia { background:var(--blue-soft); border-radius:12px; padding:0.875rem 1rem; margin-bottom:1rem; display:flex; gap:10px; align-items:flex-start; }
+  .sugerencia-ia.alerta { background:var(--red-soft); }
+  .sugerencia-ia.warning { background:var(--amber-soft); }
+  .ia-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+  .ia-texto { font-size:13px; color:var(--text); line-height:1.5; }
+  .ia-texto strong { font-weight:500; display:block; margin-bottom:2px; }
+  .ia-action { margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
+  .ia-btn { font-size:11px; font-weight:500; padding:4px 10px; border-radius:8px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.12s; }
+  .ia-btn-blue { background:var(--blue); color:white; }
+  .ia-btn-outline { background:transparent; border:1px solid var(--border); color:var(--muted); }
+  .ia-btn:active { transform:scale(0.95); }
+
+  /* NOTAS LISTA */
+  .notas-lista { display:flex; flex-direction:column; gap:6px; margin-bottom:1rem; }
+  .nota-item { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border-radius:10px; }
+  .nota-tipo { font-size:11px; font-weight:500; padding:2px 8px; border-radius:8px; flex-shrink:0; }
+  .t-prueba  { background:var(--red-soft); color:var(--red-dark); }
+  .t-tarea   { background:var(--blue-soft); color:var(--blue-mid); }
+  .t-control { background:var(--green-soft); color:var(--green-dark); }
+  .t-trabajo { background:var(--amber-soft); color:var(--amber-dark); }
+  .nota-desc { flex:1; font-size:13px; color:var(--muted); font-weight:300; }
+  .nota-fecha { font-size:11px; color:var(--muted); font-weight:300; flex-shrink:0; }
+  .nota-val { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; flex-shrink:0; }
+  .n-buena { color:var(--green); }
+  .n-media { color:var(--amber); }
+  .n-mala  { color:var(--red); }
+
+  /* MINI GRÁFICO */
+  .mini-chart { margin-bottom:1rem; }
+  .chart-label { font-size:11px; color:var(--muted); margin-bottom:6px; font-weight:300; }
+  .chart-bars { display:flex; align-items:flex-end; gap:4px; height:48px; }
+  .chart-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; height:100%; justify-content:flex-end; }
+  .chart-bar { width:100%; border-radius:4px 4px 0 0; min-height:4px; transition:height 0.4s ease; }
+  .chart-bar-lbl { font-size:9px; color:var(--muted); }
+
+  /* AGREGAR NOTA RÁPIDA */
+  .agregar-nota-row { display:flex; gap:6px; }
+  .input-nota { flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--white); outline:none; transition:border-color 0.15s; }
+  .input-nota:focus { border-color:var(--blue); }
+  .select-tipo-nota { padding:8px 10px; border:1px solid var(--border); border-radius:10px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--white); outline:none; }
+  .btn-add-nota { padding:8px 14px; background:var(--blue); border:none; border-radius:10px; color:white; font-size:13px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.12s; }
+  .btn-add-nota:active { transform:scale(0.95); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:flex-end; justify-content:center; }
+  .modal-overlay.visible { display:flex; }
+  .modal { background:var(--white); border-radius:24px 24px 0 0; padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom)); width:100%; max-width:480px; animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1); }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-handle { width:36px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 1.25rem; }
+  .modal-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; margin-bottom:1.25rem; }
+  .modal label { font-size:12px; color:var(--muted); font-weight:500; display:block; margin-bottom:4px; }
+  .modal input, .modal select { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--bg); outline:none; margin-bottom:12px; transition:border-color 0.15s; }
+  .modal input:focus, .modal select:focus { border-color:var(--blue); background:var(--white); }
+  .modal-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .btn-guardar { width:100%; padding:12px; border-radius:14px; background:var(--blue); border:none; color:white; font-size:15px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:4px; transition:all 0.15s; }
+  .btn-guardar:active { transform:scale(0.98); }
+  .btn-cancelar { width:100%; padding:10px; border-radius:14px; background:transparent; border:none; color:var(--muted); font-size:14px; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:6px; }
+
+  /* NOTIF */
+  .notif { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:var(--text); color:white; border-radius:12px; padding:10px 18px; font-size:13px; font-weight:500; z-index:200; opacity:0; transition:opacity 0.3s; white-space:nowrap; pointer-events:none; }
+  .notif.visible { opacity:1; }
+
+  /* NAV */
+  nav { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom)); z-index:10; }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 16px; border-radius:12px; cursor:pointer; border:none; background:transparent; text-decoration:none; }
+  .nav-item svg { width:22px; height:22px; }
+  .nav-item span { font-size:10px; font-weight:500; color:var(--muted); }
+  .nav-item.active span { color:var(--blue); }
+  .nav-item.active svg { stroke:var(--blue); }
+  .nav-item:not(.active) svg { stroke:var(--muted); }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <h1>Mis notas</h1>
+  <button class="btn-agregar-nota" onclick="abrirModal()">+ Agregar nota</button>
+</header>
+
+<!-- NOTIF -->
+<div class="notif" id="notif"></div>
+
+<!-- PROMEDIO BANNER -->
+<div class="promedio-banner">
+  <div class="prom-left">
+    <span class="prom-label">Promedio general</span>
+    <span class="prom-valor" id="promedioGeneral">5.4</span>
+    <span class="prom-sub" id="promedioSub">Actualizado hoy</span>
+  </div>
+  <div class="prom-right">
+    <span class="prom-badge" id="tendenciaBadge">↑ Subiendo</span>
+    <div class="prom-riesgo" id="riesgoBadge">⚠ 1 ramo en riesgo</div>
+  </div>
+</div>
+
+<!-- SEMÁFORO RESUMEN -->
+<div class="semaforo-row">
+  <div class="sem-card verde">
+    <div class="sem-num" id="cntVerde">2</div>
+    <div class="sem-lbl">Bien encaminado</div>
+  </div>
+  <div class="sem-card amarillo">
+    <div class="sem-num" id="cntAmarillo">1</div>
+    <div class="sem-lbl">En observación</div>
+  </div>
+  <div class="sem-card rojo">
+    <div class="sem-num" id="cntRojo">1</div>
+    <div class="sem-lbl">Riesgo real</div>
+  </div>
+</div>
+
+<!-- RAMOS -->
+<section>
+  <div class="section-title">Ramos</div>
+  <div id="ramosContainer"></div>
+</section>
+
+<!-- MODAL AGREGAR NOTA -->
+<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Agregar nota</div>
+
+    <label>Ramo</label>
+    <select id="m-ramo">
+      <option>Matemáticas</option>
+      <option>Historia</option>
+      <option>Lenguaje</option>
+      <option>Física</option>
+      <option>Inglés</option>
+      <option>Química</option>
+      <option>Biología</option>
+      <option>Filosofía</option>
+      <option>Ed. Física</option>
+    </select>
+
+    <div class="modal-row">
+      <div>
+        <label>Nota (1.0 – 7.0)</label>
+        <input type="number" id="m-nota" min="1" max="7" step="0.1" placeholder="5.5">
+      </div>
+      <div>
+        <label>Tipo</label>
+        <select id="m-tipo">
+          <option value="prueba">Prueba</option>
+          <option value="control">Control</option>
+          <option value="tarea">Tarea</option>
+          <option value="trabajo">Trabajo</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Descripción (opcional)</label>
+    <input type="text" id="m-desc" placeholder="Ej: Prueba unidad 2, electromagnetismo">
+
+    <label>Fecha</label>
+    <input type="date" id="m-fecha">
+
+    <button class="btn-guardar" onclick="guardarNota()">Guardar nota</button>
+    <button class="btn-cancelar" onclick="cerrarModalDirecto()">Cancelar</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-item" onclick="window.location='dashboard.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Inicio</span>
+  </button>
+  <button class="nav-item" onclick="window.location='tareas.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span>Tareas</span>
+  </button>
+  <button class="nav-item" onclick="window.location='calendario.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Calendario</span>
+  </button>
+  <button class="nav-item" onclick="window.location='pomodoro.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Pomodoro</span>
+  </button>
+  <button class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Notas</span>
+  </button>
+</nav>
+
+<script>
+const NOTAS_KEY = 'martin_notas';
+
+const ramosBase = [
+  { nombre:'Matemáticas', notas:[
+    { val:6.5, tipo:'prueba', desc:'Unidad funciones', fecha:'2025-03-10' },
+    { val:6.0, tipo:'tarea',  desc:'Ejercicios límites', fecha:'2025-03-20' },
+    { val:5.8, tipo:'control', desc:'Control rápido', fecha:'2025-04-01' },
+  ]},
+  { nombre:'Historia', notas:[
+    { val:6.2, tipo:'prueba', desc:'República parlamentaria', fecha:'2025-03-08' },
+    { val:5.5, tipo:'trabajo', desc:'Trabajo grupal', fecha:'2025-03-25' },
+    { val:5.8, tipo:'control', desc:'Control siglo XX', fecha:'2025-04-05' },
+  ]},
+  { nombre:'Lenguaje', notas:[
+    { val:5.2, tipo:'prueba', desc:'Comprensión lectora', fecha:'2025-03-12' },
+    { val:4.8, tipo:'tarea',  desc:'Análisis texto', fecha:'2025-03-28' },
+    { val:5.4, tipo:'control', desc:'Ortografía', fecha:'2025-04-03' },
+  ]},
+  { nombre:'Física', notas:[
+    { val:4.5, tipo:'prueba', desc:'Electromagnetismo', fecha:'2025-03-15' },
+    { val:3.8, tipo:'control', desc:'Control ondas', fecha:'2025-04-02' },
+    { val:4.2, tipo:'tarea', desc:'Ejercicios circuitos', fecha:'2025-04-08' },
+  ]},
+];
+
+function cargarRamos() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(NOTAS_KEY));
+    return saved && saved.length ? saved : ramosBase;
+  } catch { return ramosBase; }
+}
+
+function guardarRamos(data) {
+  localStorage.setItem(NOTAS_KEY, JSON.stringify(data));
+}
+
+let ramos = cargarRamos();
+
+// ── LÓGICA ──
+function promedio(notas) {
+  if (!notas.length) return 0;
+  return notas.reduce((s,n) => s + n.val, 0) / notas.length;
+}
+
+function tendencia(notas) {
+  if (notas.length < 2) return '→';
+  const sorted = [...notas].sort((a,b) => new Date(a.fecha)-new Date(b.fecha));
+  const mitad = Math.floor(sorted.length/2);
+  const primera = promedio(sorted.slice(0, mitad));
+  const segunda = promedio(sorted.slice(mitad));
+  if (segunda - primera > 0.2) return '↑';
+  if (primera - segunda > 0.2) return '↓';
+  return '→';
+}
+
+function semaforo(prom, tend) {
+  if (prom >= 5.5) return 'verde';
+  if (prom >= 4.5) return 'amarillo';
+  return 'rojo';
+}
+
+function colorProm(prom) {
+  if (prom >= 5.5) return 'p-verde';
+  if (prom >= 4.5) return 'p-amarillo';
+  return 'p-rojo';
+}
+
+function colorNota(val) {
+  if (val >= 5.5) return 'n-buena';
+  if (val >= 4.0) return 'n-media';
+  return 'n-mala';
+}
+
+function colorSem(sem) {
+  return { verde:'s-verde', amarillo:'s-amarillo', rojo:'s-rojo' }[sem];
+}
+
+function sugerenciaIA(ramo, prom, tend, sem) {
+  if (sem === 'rojo') {
+    return {
+      tipo: 'alerta',
+      icono: '🚨',
+      titulo: `${ramo} necesita atención urgente`,
+      texto: `Tu promedio es ${prom.toFixed(1)} y va en bajada. Necesitas al menos un 6.0 en la próxima evaluación para recuperarte.`,
+      acciones: [{ label:'Bloquear tiempo de estudio', tipo:'blue' }, { label:'Ver tareas pendientes', tipo:'outline' }]
+    };
+  }
+  if (sem === 'amarillo') {
+    return {
+      tipo: 'warning',
+      icono: '⚠️',
+      titulo: `${ramo} en observación`,
+      texto: tend === '↓'
+        ? `El promedio va bajando (${prom.toFixed(1)}). Conviene repasar antes de la próxima prueba.`
+        : `Estás en ${prom.toFixed(1)}, cerca del límite. Un buen control puede asegurar el ramo.`,
+      acciones: [{ label:'Iniciar Pomodoro', tipo:'blue' }]
+    };
+  }
+  if (tend === '↑') {
+    return {
+      tipo: 'positivo',
+      icono: '🎯',
+      titulo: `¡${ramo} va muy bien!`,
+      texto: `Promedio ${prom.toFixed(1)} y en alza. Sigue así, estás en buen camino.`,
+      acciones: []
+    };
+  }
+  return null;
+}
+
+// ── RENDER ──
+function render() {
+  const container = document.getElementById('ramosContainer');
+  container.innerHTML = '';
+
+  let totalNotas = 0, sumaProm = 0;
+  let cntVerde = 0, cntAmarillo = 0, cntRojo = 0;
+
+  ramos.forEach((r, idx) => {
+    const prom = promedio(r.notas);
+    const tend = tendencia(r.notas);
+    const sem  = semaforo(prom);
+    totalNotas += r.notas.length;
+    sumaProm += prom;
+    if (sem === 'verde') cntVerde++;
+    else if (sem === 'amarillo') cntAmarillo++;
+    else cntRojo++;
+
+    const sug = sugerenciaIA(r.nombre, prom, tend, sem);
+    const sorted = [...r.notas].sort((a,b) => new Date(b.fecha)-new Date(a.fecha));
+
+    // Mini gráfico de barras
+    const maxVal = 7;
+    const barsHTML = sorted.slice().reverse().map((n,i) => {
+      const h = Math.round((n.val / maxVal) * 100);
+      const col = n.val >= 5.5 ? 'var(--green)' : n.val >= 4.0 ? 'var(--amber)' : 'var(--red)';
+      const tipos = { prueba:'P', control:'C', tarea:'T', trabajo:'Tr' };
+      return `<div class="chart-bar-wrap">
+        <div class="chart-bar" style="height:${h}%;background:${col}"></div>
+        <div class="chart-bar-lbl">${tipos[n.tipo]||'N'}</div>
+      </div>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = 'ramo-card';
+    card.setAttribute('data-idx', idx);
+
+    card.innerHTML = `
+      <div class="ramo-header" onclick="toggleRamo(${idx})">
+        <div class="semaforo-dot ${colorSem(sem)}"></div>
+        <div class="ramo-info">
+          <div class="ramo-nombre">${r.nombre}</div>
+          <div class="ramo-meta">${r.notas.length} evaluaciones · ${tend === '↑' ? 'Subiendo' : tend === '↓' ? 'Bajando' : 'Estable'}</div>
+        </div>
+        <div class="ramo-right">
+          <div class="ramo-promedio ${colorProm(prom)}">${prom.toFixed(1)}</div>
+          <div class="ramo-tendencia">${tend}</div>
+        </div>
+        <div class="ramo-toggle">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="ramo-detail">
+        ${sug ? `
+          <div class="sugerencia-ia ${sug.tipo === 'alerta' ? 'alerta' : sug.tipo === 'warning' ? 'warning' : ''}">
+            <div class="ia-icon">${sug.icono}</div>
+            <div class="ia-texto">
+              <strong>${sug.titulo}</strong>
+              ${sug.texto}
+              ${sug.acciones.length ? `<div class="ia-action">
+                ${sug.acciones.map(a => `<button class="ia-btn ia-btn-${a.tipo}" onclick="accionIA('${a.label}', ${idx})">${a.label}</button>`).join('')}
+              </div>` : ''}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="mini-chart">
+          <div class="chart-label">Evolución de notas (más antigua → más reciente)</div>
+          <div class="chart-bars">${barsHTML}</div>
+        </div>
+
+        <div class="notas-lista">
+          ${sorted.map((n,i) => `
+            <div class="nota-item">
+              <span class="nota-tipo t-${n.tipo}">${n.tipo.charAt(0).toUpperCase()+n.tipo.slice(1)}</span>
+              <span class="nota-desc">${n.desc || '—'}</span>
+              <span class="nota-fecha">${formatFecha(n.fecha)}</span>
+              <span class="nota-val ${colorNota(n.val)}">${n.val.toFixed(1)}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="agregar-nota-row">
+          <select class="select-tipo-nota" id="tipo-${idx}">
+            <option value="prueba">Prueba</option>
+            <option value="control">Control</option>
+            <option value="tarea">Tarea</option>
+            <option value="trabajo">Trabajo</option>
+          </select>
+          <input class="input-nota" type="number" min="1" max="7" step="0.1" placeholder="5.5" id="nota-${idx}">
+          <button class="btn-add-nota" onclick="agregarNotaRapida(${idx})">+</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Promedio general
+  const promGeneral = sumaProm / ramos.length;
+  document.getElementById('promedioGeneral').textContent = promGeneral.toFixed(1);
+  document.getElementById('cntVerde').textContent = cntVerde;
+  document.getElementById('cntAmarillo').textContent = cntAmarillo;
+  document.getElementById('cntRojo').textContent = cntRojo;
+
+  const badge = document.getElementById('riesgoBadge');
+  if (cntRojo === 0) {
+    badge.style.display = 'none';
+  } else {
+    badge.style.display = 'flex';
+    badge.textContent = `⚠ ${cntRojo} ramo${cntRojo > 1 ? 's' : ''} en riesgo`;
+  }
+}
+
+function toggleRamo(idx) {
+  const cards = document.querySelectorAll('.ramo-card');
+  const card = cards[idx];
+  card.classList.toggle('open');
+}
+
+function agregarNotaRapida(idx) {
+  const val = parseFloat(document.getElementById(`nota-${idx}`).value);
+  const tipo = document.getElementById(`tipo-${idx}`).value;
+  if (isNaN(val) || val < 1 || val > 7) {
+    mostrarNotif('Ingresa una nota válida entre 1.0 y 7.0');
+    return;
+  }
+  ramos[idx].notas.push({
+    val, tipo, desc: tipo.charAt(0).toUpperCase() + tipo.slice(1),
+    fecha: new Date().toISOString().split('T')[0]
+  });
+  guardarRamos(ramos);
+  render();
+  mostrarNotif(`✅ Nota ${val.toFixed(1)} agregada en ${ramos[idx].nombre}`);
+  // Re-abrir el card
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.ramo-card');
+    if (cards[idx]) cards[idx].classList.add('open');
+  }, 50);
+}
+
+function accionIA(label, idx) {
+  if (label.includes('Pomodoro')) {
+    localStorage.setItem('martin_pomo_tarea', `Estudiar ${ramos[idx].nombre}`);
+    window.location = 'pomodoro.html';
+  } else if (label.includes('Bloquear')) {
+    mostrarNotif(`📅 Abre el calendario para bloquear tiempo de ${ramos[idx].nombre}`);
+  } else if (label.includes('tareas')) {
+    window.location = 'tareas.html';
+  }
+}
+
+function formatFecha(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T12:00:00');
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${d.getDate()} ${meses[d.getMonth()]}`;
+}
+
+// MODAL
+function abrirModal() {
+  document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+function cerrarModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) cerrarModalDirecto();
+}
+function cerrarModalDirecto() {
+  document.getElementById('modalOverlay').classList.remove('visible');
+}
+function guardarNota() {
+  const ramo  = document.getElementById('m-ramo').value;
+  const val   = parseFloat(document.getElementById('m-nota').value);
+  const tipo  = document.getElementById('m-tipo').value;
+  const desc  = document.getElementById('m-desc').value.trim();
+  const fecha = document.getElementById('m-fecha').value;
+
+  if (isNaN(val) || val < 1 || val > 7) {
+    document.getElementById('m-nota').focus(); return;
+  }
+
+  let r = ramos.find(x => x.nombre === ramo);
+  if (!r) { r = { nombre: ramo, notas: [] }; ramos.push(r); }
+  r.notas.push({ val, tipo, desc: desc || tipo, fecha });
+
+  guardarRamos(ramos);
+  cerrarModalDirecto();
+  document.getElementById('m-nota').value = '';
+  document.getElementById('m-desc').value = '';
+  render();
+  mostrarNotif(`✅ Nota ${val.toFixed(1)} guardada en ${ramo}`);
+}
+
+function mostrarNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('visible');
+  setTimeout(() => n.classList.remove('visible'), 3000);
+}
+
+document.addEventListener('keydown', e => { if (e.key==='Escape') cerrarModalDirecto(); });
+
+render();
+</script>
+</body>
+</html>
