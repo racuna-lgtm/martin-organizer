@@ -249,15 +249,31 @@ function getEventos(){
           const tipoEv = t.tipo === 'prueba' ? 'prueba' : t.tipo === 'trabajo' ? 'estudio' : 'bloque';
           const h1 = t.hora || (t.tipo === 'prueba' ? '08:00' : '16:00');
           const h2 = t.horaFin || (t.tipo === 'prueba' ? '10:00' : '18:00');
+          // Limpiar nombre para el calendario
+          const ramo = t.ramo && t.ramo !== 'Otro' && t.ramo !== 'ramo' ? t.ramo : '';
+          let nombreCal = t.nombre;
+          const nl = t.nombre.toLowerCase();
+          if (t.tipo==='prueba' && ramo) nombreCal = `Prueba de ${ramo}`;
+          else if (t.tipo==='control' && ramo) nombreCal = `Control de ${ramo}`;
+          else if (t.tipo==='trabajo' && ramo) nombreCal = `Trabajo de ${ramo}`;
+          else if (t.nombre.length > 35 && (nl.includes('tengo')||nl.includes('mañana')||nl.includes('pasado')||nl.startsWith('hoy'))) {
+            if (nl.includes('estudiar')||nl.includes('repasar')) {
+              const match = nl.match(/estudiar (?:para )?(?:la |el |los |las )?(.{2,25})/);
+              const tema = match ? match[1].replace(/mañana|pasado|hoy|el |la |los |las /g,'').trim() : '';
+              nombreCal = tema.length > 2 ? `Estudiar ${tema.charAt(0).toUpperCase()+tema.slice(1)}` : ramo ? `Estudiar ${ramo}` : 'Bloque de estudio';
+            } else {
+              nombreCal = t.nombre.slice(0,35).trim();
+            }
+          }
           evPropios.push({
             id: 'tarea-' + t.id,
             tareaId: t.id,
-            nombre: t.nombre,
+            nombre: nombreCal,
             tipo: tipoEv,
             fecha: t.fecha,
             inicio: h1,
             fin: h2,
-            notas: t.ramo || '',
+            notas: t.ramo || t.notas || '',
             desdeTareas: true
           });
         }
