@@ -7,12 +7,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --blue:#0090F8; --blue-soft:#E6F1FB; --blue-mid:#378ADD;
-    --green:#00C896; --green-soft:#E1F5EE; --green-dark:#085041;
-    --amber:#FFB020; --amber-soft:#FAEEDA; --amber-dark:#633806;
-    --red:#FF4D4D; --red-soft:#FCEBEB; --red-dark:#A32D2D;
-    --purple:#7F77DD; --purple-soft:#EEEDFE; --purple-dark:#3C3489;
-    --bg:#F5F7FA; --white:#FFFFFF; --text:#2A2A2A; --muted:#8890A0; --border:#E2E5EC;
+      --blue:#0090F8; --blue-soft:#0D2A45; --blue-mid:#378ADD;
+    --green:#00C896; --green-soft:#0A2E24; --green-dark:#5DCAA5;
+    --amber:#FFB020; --amber-soft:#2E2000; --amber-dark:#FFB020;
+    --red:#FF5555; --red-soft:#2E0A0A; --red-dark:#FF8080;
+    --purple:#7F77DD; --purple-soft:#1A1835; --purple-dark:#AFA9EC;
+    --bg:#0F1117; --white:#1A1D27; --text:#E8EAF0; --muted:#6B7280; --border:#2A2D3A;
+    --surface:#141720;
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { font-family:'DM Sans',sans-serif; background:var(--bg); min-height:100dvh; padding-bottom:90px; color:var(--text); }
@@ -209,10 +210,11 @@ const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 const MESES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const DIAS_N=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 let hoy=new Date(), viewDate=new Date(), diaSeleccionado=new Date(), vista='dia';
-// Fix zona horaria — asegurar que la fecha inicial sea hoy correctamente
-diaSeleccionado = new Date(new Date().toISOString().split('T')[0]+'T12:00:00');
-hoy = new Date(new Date().toISOString().split('T')[0]+'T12:00:00');
-viewDate = new Date(new Date().toISOString().split('T')[0]+'T12:00:00');
+const _hoyStr = new Date().toISOString().split('T')[0];
+let _diaSelStr = _hoyStr;
+diaSeleccionado = new Date(_hoyStr+'T12:00:00');
+hoy = new Date(_hoyStr+'T12:00:00');
+viewDate = new Date(_hoyStr+'T12:00:00');
 let eventoExpandido=null;
 
 function fmt(d){return d.toISOString().split('T')[0];}
@@ -289,7 +291,8 @@ function renderCalendario(){
   const prevUltimo=new Date(y,m,0).getDate();
   for(let i=startDay-1;i>=0;i--){const d=document.createElement('div');d.className='cal-day otro-mes';d.innerHTML=`<div class="day-num">${prevUltimo-i}</div>`;grid.appendChild(d);}
   for(let d=1;d<=ultimoDia;d++){
-    const fecha=fmt(new Date(y,m,d)),esHoy=fecha===fmt(hoy),esSel=fecha===fmt(diaSeleccionado);
+    const mm=String(m+1).padStart(2,'0'),dd=String(d).padStart(2,'0');
+    const fecha=`${y}-${mm}-${dd}`,esHoy=fecha===fmt(hoy),esSel=fecha===fmt(diaSeleccionado);
     const evDia=eventos.filter(e=>e.fecha===fecha);
     const day=document.createElement('div');
     day.className=`cal-day${esHoy?' hoy':''}${esSel?' selected':''}`;
@@ -304,7 +307,9 @@ function renderCalendario(){
 }
 
 function seleccionarDia(fecha){
+  // Guardar como string para evitar timezone shifts
   diaSeleccionado=new Date(fecha+'T12:00:00');
+  _diaSelStr=fecha; // string puro para comparaciones
   vista='dia';
   document.querySelectorAll('.vista-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
   renderCalendario();renderEventos();
@@ -318,7 +323,11 @@ function renderEventos(){
   const lista=document.getElementById('eventosLista');
   let evF=[];
   const fechaSel=fmt(diaSeleccionado);
-  if(vista==='dia'){evF=eventos.filter(e=>e.fecha===fechaSel).sort((a,b)=>a.inicio.localeCompare(b.inicio));document.getElementById('eventosFecha').textContent=fmtLabel(fechaSel);}
+  if(vista==='dia'){
+    const fechaDia = typeof _diaSelStr!=='undefined' ? _diaSelStr : fechaSel;
+    evF=eventos.filter(e=>e.fecha===fechaDia).sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    document.getElementById('eventosFecha').textContent=fmtLabel(fechaDia);
+  }
   else if(vista==='semana'){const ini=new Date(diaSeleccionado),dia=ini.getDay()||7;ini.setDate(ini.getDate()-dia+1);const fin=new Date(ini);fin.setDate(ini.getDate()+6);evF=eventos.filter(e=>{const f=new Date(e.fecha+'T12:00:00');return f>=ini&&f<=fin;}).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.inicio.localeCompare(b.inicio));const ini2=new Date(ini),fin2=new Date(fin);document.getElementById('eventosFecha').textContent=`Semana del ${ini2.getDate()} al ${fin2.getDate()} de ${MESES_C[fin2.getMonth()]}`;}
   else{const hoyD=hoyStr();evF=eventos.filter(e=>e.fecha>=hoyD).sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.inicio.localeCompare(b.inicio)).slice(0,10);document.getElementById('eventosFecha').textContent='Próximos eventos';}
   document.getElementById('eventosCount').textContent=evF.length?`${evF.length} evento${evF.length>1?'s':''}`:'' ;
