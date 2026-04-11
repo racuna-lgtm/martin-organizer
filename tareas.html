@@ -297,6 +297,10 @@
   .bs-check { width:20px; height:20px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
   .bloque-sugerencia.seleccionado .bs-check { background:var(--blue); border-color:var(--blue); }
   .bloque-sugerencia.seleccionado .bs-check::after { content:''; width:5px; height:9px; border:2px solid white; border-top:none; border-left:none; transform:rotate(45deg) translate(-1px,-1px); display:block; }
+  .bloque-chip { display:flex; align-items:center; gap:6px; padding:7px 10px; border-radius:8px; font-size:12px; font-weight:500; margin-bottom:2px; }
+  .bloque-chip.ok { background:var(--green-soft); color:var(--green-dark); }
+  .bloque-chip.pendiente { background:var(--amber-soft); color:var(--amber-dark); cursor:pointer; border:1px dashed var(--amber); }
+  .bloque-chip.pendiente:hover { background:var(--blue-soft); color:var(--blue-mid); border-color:var(--blue); }
 </style>
 </head>
 <body>
@@ -575,13 +579,28 @@
               ${fechaLabel}
             </span>` : ''}
             <span class="meta-chip"><div class="urgencia-dot ${uColor}"></div>${uLabel}</span>
-            ${t.notas ? `<span class="meta-chip">${t.notas}</span>` : ''}
           </div>
-          ${!t.done ? `<div class="task-actions">
-            <button class="btn-mini pomo" onclick="iniciarPomo(${t.id})">⏱ Estudiar ahora</button>
-            <button class="btn-mini" onclick="editarTarea(${t.id})">✏️ Editar</button>
-            <button class="btn-mini" onclick="eliminar(${t.id})">Eliminar</button>
-          </div>` : ''}
+          ${!t.done ? (() => {
+            const bloque = getBloquePreparacion(t.id);
+            const bloqueHTML = bloque
+              ? `<div class="bloque-chip ok">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke-width="2" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                  Preparación: ${fmtFechaCorta(bloque.fecha)} · ${bloque.inicio}
+                  <button onclick="event.stopPropagation();abrirModalBloque(tareas.find(x=>x.id===${t.id}))" style="background:none;border:none;color:inherit;cursor:pointer;font-size:11px;margin-left:4px;opacity:0.7">cambiar</button>
+                </div>`
+              : `<div class="bloque-chip pendiente" onclick="abrirModalBloque(tareas.find(x=>x.id===${t.id}))">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke-width="2" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  ¿Cuándo lo vas a preparar? Toca para agendar
+                </div>`;
+            return `<div class="task-actions">
+              ${bloqueHTML}
+              <div style="display:flex;gap:6px;margin-top:4px">
+                <button class="btn-mini pomo" onclick="iniciarPomo(${t.id})">⏱ Estudiar ahora</button>
+                <button class="btn-mini" onclick="editarTarea(${t.id})">✏️ Editar</button>
+                <button class="btn-mini" onclick="eliminar(${t.id})">Eliminar</button>
+              </div>
+            </div>`;
+          })() : ''}
         </div>
       `;
       lista.appendChild(div);
@@ -590,6 +609,22 @@
 
   function hoyStr() {
     return new Date().toISOString().split('T')[0];
+  }
+
+  function getBloquePreparacion(tareaId) {
+    const eventos = JSON.parse(localStorage.getItem('martin_eventos')||'[]');
+    return eventos.find(e =>
+      String(e.tareaId) === String(tareaId) &&
+      (e.esBloquePreparacion || e.tipo === 'bloque_estudio')
+    ) || null;
+  }
+
+  function fmtFechaCorta(str) {
+    if(!str) return '';
+    const d = new Date(str+'T12:00:00');
+    const D=['dom','lun','mar','mié','jue','vie','sáb'];
+    const M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return `${D[d.getDay()]} ${d.getDate()} ${M[d.getMonth()]}`;
   }
 
   function formatFecha(str) {
@@ -820,10 +855,12 @@
     if(document.getElementById('m-hora')) document.getElementById('m-hora').value = '';
     if(document.getElementById('m-horafin')) document.getElementById('m-horafin').value = '';
     render();
-    // Para CUALQUIER tarea con fecha (hoy o futura), preguntar cuándo la preparará
-    // Excepción: si ya viene con hora definida, ya sabe cuándo la hará
+    actualizarProgreso();
+    // Para CUALQUIER tarea con fecha, preguntar cuándo la preparará
+    // Solo si no viene con hora ya definida
     if(nueva.fecha && !nueva.hora) {
-      setTimeout(() => abrirModalBloque(nueva), 400);
+      // Sin setTimeout — abre directo para asegurar que funcione
+      abrirModalBloque(nueva);
     }
   }
 
@@ -917,9 +954,9 @@
 
     document.getElementById('transcriptText').textContent = `✅ Agregada: "${nueva.nombre}"`;
     // Para cualquier tarea con fecha, preguntar cuándo la preparará
-    // (solo si no viene con hora ya definida)
     if(fecha && !nueva.hora) {
-      setTimeout(() => abrirModalBloque(nueva), 3500);
+      // Esperar a que el transcript se limpie y luego abrir
+      setTimeout(() => abrirModalBloque(nueva), 2000);
     }
     document.getElementById('transcriptHint').textContent = `${tipo} de ${ramo} · ${dia}`;
 
@@ -1112,9 +1149,22 @@
   function guardarBloqueDeEstudio() {
     if(!bloqueSeleccionado||!tareaParaBloque){cerrarModalBloqueFinal();return;}
     const eventos=JSON.parse(localStorage.getItem('martin_eventos')||'[]');
-    eventos.push({id:Date.now()+Math.random(),tareaId:tareaParaBloque.id,nombre:`Estudiar: ${tareaParaBloque.nombre}`,tipo:'bloque_estudio',fecha:bloqueSeleccionado.fecha,inicio:bloqueSeleccionado.inicio,fin:bloqueSeleccionado.fin,notas:tareaParaBloque.ramo||'',esBloquePreparacion:true});
-    localStorage.setItem('martin_eventos',JSON.stringify(eventos));
+    // Eliminar bloque anterior de esta misma tarea si existía
+    const sinAnterior = eventos.filter(e => !(String(e.tareaId)===String(tareaParaBloque.id) && e.esBloquePreparacion));
+    sinAnterior.push({
+      id: Date.now()+Math.random(),
+      tareaId: tareaParaBloque.id,
+      nombre: `Estudiar: ${tareaParaBloque.nombre}`,
+      tipo: 'bloque_estudio',
+      fecha: bloqueSeleccionado.fecha,
+      inicio: bloqueSeleccionado.inicio,
+      fin: bloqueSeleccionado.fin,
+      notas: tareaParaBloque.ramo||'',
+      esBloquePreparacion: true
+    });
+    localStorage.setItem('martin_eventos', JSON.stringify(sinAnterior));
     cerrarModalBloqueFinal();
+    render(); // re-renderizar para mostrar el chip verde
     mostrarNotifDeshacer(`📅 Bloque guardado: ${fmtFechaCorta(bloqueSeleccionado.fecha)} ${bloqueSeleccionado.inicio}`);
   }
 
