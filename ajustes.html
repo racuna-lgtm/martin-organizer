@@ -47,7 +47,6 @@
   .ajuste-desc { font-size:12px; color:var(--muted); margin-top:1px; }
   .ajuste-arrow { color:var(--muted); font-size:16px; }
 
-  /* PIN CHANGE */
   .pin-section { display:none; padding:1.25rem; background:var(--bg); border-top:1px solid var(--border); }
   .pin-section.visible { display:block; }
   .pin-section h3 { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:1rem; }
@@ -69,7 +68,6 @@
 
   .notif { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:var(--text); color:white; border-radius:12px; padding:10px 18px; font-size:13px; font-weight:500; z-index:200; opacity:0; transition:opacity 0.3s; white-space:nowrap; pointer-events:none; }
   .notif.visible { opacity:1; }
-
   .version { text-align:center; font-size:12px; color:var(--muted); padding:1.5rem; }
 </style>
 </head>
@@ -84,7 +82,6 @@
 
 <div class="notif" id="notif"></div>
 
-<!-- PERFIL -->
 <div class="perfil-card">
   <div class="avatar-big" id="avatarBig">M</div>
   <div class="perfil-nombre" id="perfilNombre">Martín</div>
@@ -93,7 +90,6 @@
   <button class="btn-guardar-nombre" onclick="guardarNombre()">Guardar nombre</button>
 </div>
 
-<!-- SEGURIDAD -->
 <div class="seccion">
   <div class="seccion-title">Seguridad</div>
   <div class="ajuste-card">
@@ -109,7 +105,6 @@
     </div>
     <div class="pin-section" id="pinSection">
       <h3>Cambiar PIN de acceso</h3>
-
       <div class="pin-step" id="step1">
         <label>PIN actual</label>
         <div class="pin-dots" id="dots-actual">
@@ -131,7 +126,6 @@
           <div class="pin-dot"></div><div class="pin-dot"></div>
         </div>
       </div>
-
       <div class="keypad-mini">
         <button class="key-mini" onclick="pinKey('1')">1</button>
         <button class="key-mini" onclick="pinKey('2')">2</button>
@@ -151,7 +145,6 @@
   </div>
 </div>
 
-<!-- POMODORO -->
 <div class="seccion">
   <div class="seccion-title">Pomodoro</div>
   <div class="ajuste-card">
@@ -168,7 +161,6 @@
   </div>
 </div>
 
-<!-- DATOS -->
 <div class="seccion">
   <div class="seccion-title">Datos</div>
   <div class="ajuste-card">
@@ -198,17 +190,16 @@
       </div>
       <div class="ajuste-body">
         <div class="ajuste-label">Resetear todo</div>
-        <div class="ajuste-desc">Borra todos los datos de la app</div>
+        <div class="ajuste-desc">Borra todos los datos — local y nube</div>
       </div>
       <span class="ajuste-arrow">›</span>
     </div>
   </div>
 </div>
 
-<div class="version">Martín Organizer v1.0 · Hecho con ❤️ por Naty</div>
+<div class="version">Martín Organizer v1.1 · Hecho con ❤️ por Naty</div>
 
 <script>
-  // Nombre
   const nombre = localStorage.getItem('martin_nombre') || 'Martín';
   document.getElementById('perfilNombre').textContent = nombre;
   document.getElementById('avatarBig').textContent = nombre.charAt(0).toUpperCase();
@@ -303,11 +294,16 @@
     }
   }
 
-  // Datos
+  // ── DATOS — CORREGIDOS ──
+
   function limpiarTareas() {
     if (!confirm('¿Eliminar todas las tareas completadas?')) return;
-    const t = JSON.parse(localStorage.getItem('martin_tareas')||'[]').filter(x=>!x.done);
-    localStorage.setItem('martin_tareas', JSON.stringify(t));
+    const tareas = JSON.parse(localStorage.getItem('martin_tareas') || '[]').filter(x => !x.done);
+    localStorage.setItem('martin_tareas', JSON.stringify(tareas));
+    // FIX: sincronizar con Supabase para que también se eliminen allá
+    if (typeof SyncManager !== 'undefined') {
+      SyncManager.push().catch(() => {});
+    }
     mostrarNotif('✅ Tareas completadas eliminadas');
   }
 
@@ -317,18 +313,35 @@
     mostrarNotif('✅ Historial borrado');
   }
 
-  function resetearTodo() {
+  async function resetearTodo() {
     if (!confirm('⚠️ Esto borra TODOS los datos de la app. ¿Estás seguro?')) return;
-    if (!confirm('¿Confirmas que quieres borrar todo?')) return;
-    ['martin_tareas','martin_notas','martin_eventos','martin_pomo_hist','martin_pomo_cfg','martin_racha','martin_ultima_visita','martin_nombre','martin_pomo_tarea'].forEach(k=>localStorage.removeItem(k));
-    mostrarNotif('♻️ App reseteada');
-    setTimeout(()=>window.location='index.html', 1500);
+    if (!confirm('¿Confirmas que quieres borrar TODO, incluyendo la nube?')) return;
+
+    mostrarNotif('♻️ Reseteando...');
+
+    // FIX 1: Limpiar localStorage
+    ['martin_tareas','martin_notas','martin_eventos','martin_pomo_hist',
+     'martin_pomo_cfg','martin_racha','martin_ultima_visita','martin_nombre',
+     'martin_pomo_tarea','martin_dias_activos'].forEach(k => localStorage.removeItem(k));
+
+    // FIX 2: Limpiar Supabase también — ESTO es lo que faltaba
+    if (typeof SyncManager !== 'undefined') {
+      await SyncManager.reset().catch(() => {});
+    }
+
+    setTimeout(() => window.location = 'index.html', 1200);
   }
 
   function mostrarNotif(msg) {
-    const n=document.getElementById('notif'); n.textContent=msg; n.classList.add('visible');
-    setTimeout(()=>n.classList.remove('visible'),3000);
+    const n = document.getElementById('notif');
+    n.textContent = msg;
+    n.classList.add('visible');
+    setTimeout(() => n.classList.remove('visible'), 3000);
   }
 </script>
+
+<!-- Supabase + Sync — necesarios para reset -->
+<script src="supabase.js"></script>
+<script src="sync-manager.js"></script>
 </body>
 </html>
