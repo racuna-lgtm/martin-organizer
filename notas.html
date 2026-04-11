@@ -684,7 +684,10 @@ function render() {
     container.appendChild(card);
   });
 
-  const promGeneral = sumaProm / ramosFiltrados.length;
+  const ramosConN = ramosFiltrados.filter(r => r.notas.length > 0);
+  const promGeneral = ramosConN.length > 0
+    ? ramosConN.reduce((s,r) => s + promedio(r.notas), 0) / ramosConN.length
+    : 0;
   document.getElementById('promedioGeneral').textContent = promGeneral > 0 ? promGeneral.toFixed(1) : '—';
   document.getElementById('cntVerde').textContent = cntVerde;
   document.getElementById('cntAmarillo').textContent = cntAmarillo;
