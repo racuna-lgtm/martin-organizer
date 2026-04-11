@@ -285,6 +285,18 @@
   }
   .fab:hover { transform: scale(1.08); }
   .fab:active { transform: scale(0.95); }
+  .input-field { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--bg); outline:none; transition:border-color 0.15s; }
+  .input-field:focus { border-color:var(--blue); }
+  .bloque-sugerencia { background:var(--white); border:1px solid var(--border); border-radius:12px; padding:12px 14px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:12px; }
+  .bloque-sugerencia:hover { border-color:var(--blue); }
+  .bloque-sugerencia.seleccionado { border-color:var(--blue); background:var(--blue-soft); }
+  .bs-dot { width:10px; height:10px; border-radius:50%; background:var(--green); flex-shrink:0; }
+  .bs-info { flex:1; }
+  .bs-fecha { font-size:14px; font-weight:500; color:var(--text); }
+  .bs-hora { font-size:12px; color:var(--muted); margin-top:2px; }
+  .bs-check { width:20px; height:20px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .bloque-sugerencia.seleccionado .bs-check { background:var(--blue); border-color:var(--blue); }
+  .bloque-sugerencia.seleccionado .bs-check::after { content:''; width:5px; height:9px; border:2px solid white; border-top:none; border-left:none; transform:rotate(45deg) translate(-1px,-1px); display:block; }
 </style>
 </head>
 <body>
@@ -421,6 +433,31 @@
 
     <button class="btn-guardar" onclick="guardarModal()">Guardar tarea</button>
     <button class="btn-cancelar" onclick="cerrarModalDirecto()">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL BLOQUE DE ESTUDIO -->
+<div class="modal-overlay" id="modalBloqueOverlay" onclick="cerrarModalBloque(event)">
+  <div class="modal" style="max-height:85dvh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mbTitulo">¿Cuándo vas a estudiar?</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1rem" id="mbSubtitulo"></div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem" id="mbSugerencias"></div>
+
+    <label>O elige tú mismo</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Fecha</label>
+        <input type="date" id="mb-fecha" class="input-field" style="margin-bottom:0">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Hora inicio</label>
+        <input type="time" id="mb-hora" class="input-field" value="17:00" style="margin-bottom:0">
+      </div>
+    </div>
+    <button class="btn-guardar" onclick="confirmarBloquePersonalizado()" style="margin-bottom:8px">Confirmar bloque de estudio</button>
+    <button class="btn-cancelar" onclick="cerrarModalBloqueFinal()">No por ahora</button>
   </div>
 </div>
 
@@ -783,6 +820,11 @@
     if(document.getElementById('m-hora')) document.getElementById('m-hora').value = '';
     if(document.getElementById('m-horafin')) document.getElementById('m-horafin').value = '';
     render();
+    // Si es evaluación con fecha futura, preguntar cuándo va a estudiar
+    const hoy = hoyStr();
+    if(['prueba','trabajo','control'].includes(nueva.tipo) && nueva.fecha > hoy) {
+      setTimeout(() => abrirModalBloque(nueva), 400);
+    }
   }
 
   // ── VOZ ──
@@ -874,6 +916,10 @@
     sincronizarConCalendario(nueva);
 
     document.getElementById('transcriptText').textContent = `✅ Agregada: "${nueva.nombre}"`;
+    // Si es evaluación futura, preguntar cuándo va a estudiar
+    if(['prueba','trabajo','control'].includes(tipo) && fecha > hoyStr()) {
+      setTimeout(() => abrirModalBloque(nueva), 3500);
+    }
     document.getElementById('transcriptHint').textContent = `${tipo} de ${ramo} · ${dia}`;
 
     setTimeout(() => {
@@ -974,6 +1020,104 @@
     });
     if (cambios) guardarTareas(tareas);
   }
+
+  // ── MODAL BLOQUE DE ESTUDIO ──
+  let tareaParaBloque = null;
+  let bloqueSeleccionado = null;
+
+  const FESTIVOS_CL_2026 = ['2026-04-03','2026-04-10','2026-05-01','2026-05-21','2026-06-29','2026-07-16','2026-08-15','2026-09-18','2026-09-19','2026-10-12','2026-10-31','2026-11-01','2026-11-02','2026-12-08','2026-12-25'];
+
+  function esFinde(fecha) {
+    const d = new Date(fecha+'T12:00:00');
+    return d.getDay()===0||d.getDay()===6||FESTIVOS_CL_2026.includes(fecha);
+  }
+
+  function fmtFechaCorta(str) {
+    if(!str) return '';
+    const d=new Date(str+'T12:00:00');
+    const D=['dom','lun','mar','mié','jue','vie','sáb'],M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return `${D[d.getDay()]} ${d.getDate()} ${M[d.getMonth()]}`;
+  }
+
+  function generarSugerenciasBloque(tarea) {
+    const hoy=hoyStr(), fechaVence=tarea.fecha;
+    if(!fechaVence||fechaVence<=hoy) return [];
+    const sugs=[], hoyPts=hoy.split('-');
+    const base=new Date(parseInt(hoyPts[0]),parseInt(hoyPts[1])-1,parseInt(hoyPts[2]));
+    const fmtL=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const lbl=str=>{const d=new Date(str+'T12:00:00');return `${DIAS[d.getDay()]} ${d.getDate()} ${MES[d.getMonth()]}`;};
+    let cursor=new Date(base); cursor.setDate(cursor.getDate()+1);
+    const eventos=JSON.parse(localStorage.getItem('martin_eventos')||'[]');
+    while(sugs.length<4) {
+      const fechaStr=fmtL(cursor);
+      if(fechaStr>=fechaVence) break;
+      if(esFinde(fechaStr)) {
+        sugs.push({fecha:fechaStr,inicio:'10:00',fin:'12:00',label:lbl(fechaStr),desc:'Mañana · 10:00–12:00 (fin de semana)'});
+        if(sugs.length<4) sugs.push({fecha:fechaStr,inicio:'15:00',fin:'17:00',label:lbl(fechaStr),desc:'Tarde · 15:00–17:00 (fin de semana)'});
+      } else {
+        const slots=[{inicio:'17:00',fin:'19:00',desc:'Tarde · 17:00–19:00'},{inicio:'19:00',fin:'21:00',desc:'Noche · 19:00–21:00'},{inicio:'20:00',fin:'22:00',desc:'Noche · 20:00–22:00'}];
+        for(const b of slots) {
+          if(!eventos.some(e=>e.fecha===fechaStr&&e.inicio===b.inicio)) {
+            sugs.push({fecha:fechaStr,inicio:b.inicio,fin:b.fin,label:lbl(fechaStr),desc:b.desc}); break;
+          }
+        }
+      }
+      cursor.setDate(cursor.getDate()+1);
+    }
+    return sugs;
+  }
+
+  function abrirModalBloque(tarea) {
+    tareaParaBloque=tarea; bloqueSeleccionado=null;
+    const esVerbo=['prueba','control'].includes(tarea.tipo)?'estudiar para':'preparar';
+    document.getElementById('mbTitulo').textContent=`¿Cuándo vas a ${esVerbo} esto?`;
+    document.getElementById('mbSubtitulo').textContent=`"${tarea.nombre}" vence el ${fmtFechaCorta(tarea.fecha)}. Bloquea tiempo ahora para no quedarte sin preparación.`;
+    const sugs=generarSugerenciasBloque(tarea);
+    const cont=document.getElementById('mbSugerencias');
+    if(!sugs.length) {
+      cont.innerHTML=`<div style="font-size:13px;color:var(--muted);text-align:center;padding:0.5rem">No hay días disponibles. Elige manualmente.</div>`;
+    } else {
+      cont.innerHTML=sugs.map((s,i)=>`
+        <div class="bloque-sugerencia" id="bs-${i}" onclick="seleccionarBloque(${i},'${s.fecha}','${s.inicio}','${s.fin}')">
+          <div class="bs-dot"></div>
+          <div class="bs-info"><div class="bs-fecha">${s.label}</div><div class="bs-hora">${s.desc}</div></div>
+          <div class="bs-check" id="bscheck-${i}"></div>
+        </div>`).join('');
+      seleccionarBloque(0,sugs[0].fecha,sugs[0].inicio,sugs[0].fin);
+    }
+    document.getElementById('mb-fecha').value=sugs.length?sugs[0].fecha:hoyStr();
+    document.getElementById('modalBloqueOverlay').classList.add('visible');
+  }
+
+  function seleccionarBloque(idx,fecha,inicio,fin) {
+    bloqueSeleccionado={fecha,inicio,fin};
+    document.querySelectorAll('.bloque-sugerencia').forEach((el,i)=>el.classList.toggle('seleccionado',i===idx));
+    document.getElementById('mb-fecha').value=fecha;
+    document.getElementById('mb-hora').value=inicio;
+  }
+
+  function confirmarBloquePersonalizado() {
+    const fecha=document.getElementById('mb-fecha').value;
+    const inicio=document.getElementById('mb-hora').value;
+    if(!fecha||!inicio) return;
+    const h=parseInt(inicio.split(':')[0]);
+    bloqueSeleccionado={fecha,inicio,fin:`${String(Math.min(h+2,22)).padStart(2,'0')}:00`};
+    guardarBloqueDeEstudio();
+  }
+
+  function guardarBloqueDeEstudio() {
+    if(!bloqueSeleccionado||!tareaParaBloque){cerrarModalBloqueFinal();return;}
+    const eventos=JSON.parse(localStorage.getItem('martin_eventos')||'[]');
+    eventos.push({id:Date.now()+Math.random(),tareaId:tareaParaBloque.id,nombre:`Estudiar: ${tareaParaBloque.nombre}`,tipo:'bloque_estudio',fecha:bloqueSeleccionado.fecha,inicio:bloqueSeleccionado.inicio,fin:bloqueSeleccionado.fin,notas:tareaParaBloque.ramo||'',esBloquePreparacion:true});
+    localStorage.setItem('martin_eventos',JSON.stringify(eventos));
+    cerrarModalBloqueFinal();
+    mostrarNotifDeshacer(`📅 Bloque guardado: ${fmtFechaCorta(bloqueSeleccionado.fecha)} ${bloqueSeleccionado.inicio}`);
+  }
+
+  function cerrarModalBloque(e){if(e.target===document.getElementById('modalBloqueOverlay'))cerrarModalBloqueFinal();}
+  function cerrarModalBloqueFinal(){document.getElementById('modalBloqueOverlay').classList.remove('visible');tareaParaBloque=null;bloqueSeleccionado=null;}
 
   // Init
   migrarNombres();
