@@ -500,5 +500,15 @@ try {
 
 renderCalendario();renderEventos();
 </script>
+
+<!-- Supabase + Sync -->
+<script src="supabase.js"></script>
+<script src="sync-manager.js"></script>
+<script>
+  // Iniciar sync al cargar la página
+  if (typeof SyncManager !== 'undefined') {
+    SyncManager.init().catch(e => console.log('Sync offline:', e));
+  }
+</script>
 </body>
 </html>
