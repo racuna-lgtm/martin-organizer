@@ -611,9 +611,11 @@ function render() {
     const sem  = semaforo(prom);
 
     sumaProm += prom;
-    if (sem === 'verde') cntVerde++;
-    else if (sem === 'amarillo') cntAmarillo++;
-    else cntRojo++;
+   if (r.notas.length > 0) {
+  if (sem === 'verde') cntVerde++;
+  else if (sem === 'amarillo') cntAmarillo++;
+  else cntRojo++;
+}
 
     const sug = sugerenciaIA(r.nombre, prom, tend, sem);
     const sorted = [...r.notas].sort((a,b) => new Date(b.fecha)-new Date(a.fecha));
