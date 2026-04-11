@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const hoy = chileTime.toISOString().split('T')[0];
     const manana = new Date(chileTime.getTime() + 86400000).toISOString().split('T')[0];
 
-    const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=${TEAM_ID}&next=3`, {
+    const response = await fetch(`https://v3.football.api-sports.io/fixtures?team=${TEAM_ID}&next=5`, {
       headers: { 'x-apisports-key': apiKey }
     });
 
@@ -22,11 +22,8 @@ export default async function handler(req, res) {
     const data = await response.json();
     const fixtures = data.response || [];
 
-    const proximo = fixtures.find(f => {
-      const fecha = f.fixture.date.split('T')[0];
-      return fecha === hoy || fecha === manana;
-    });
-
+    // Próximo partido — el primero disponible
+    const proximo = fixtures.length > 0 ? fixtures[0] : null;
     if (!proximo) return res.status(200).json({ partido: null });
 
     const horaUTC = new Date(proximo.fixture.date);
