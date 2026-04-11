@@ -637,7 +637,8 @@ if (r.notas.length > 0) {
         <span class="nota-tipo t-${n.tipo}">${n.tipo === 'napsis' ? 'Napsis' : n.tipo.charAt(0).toUpperCase()+n.tipo.slice(1)}</span>
         <span class="nota-desc">${n.desc || '—'}</span>
         <span class="nota-fecha">${formatFecha(n.fecha)}</span>
-        <span class="nota-val ${colorNota(n.val)}">${n.val.toFixed(1)}</span>
+      <span class="nota-val ${colorNota(n.val)}">${n.val.toFixed(1)}</span>
+        <button onclick="eliminarNota(${globalIdx},${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px" title="Eliminar">🗑</button>
       </div>`).join('');
 
     const sugHTML = sug ? `
