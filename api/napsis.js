@@ -1,4 +1,4 @@
-// api/napsis.js
+// api/napsis.js — flujo completo observado con DevTools
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ notas: null, error: 'Credenciales no configuradas' });
     }
 
-    // Rate limiting — máximo cada 12 horas
+    // Rate limiting
     const cfgRes = await fetch(`${SUPABASE_URL}/rest/v1/config?clave=eq.napsis_ultima_consulta`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
     const cfgData = await cfgRes.json();
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     const userB64 = Buffer.from(NAPSIS_USER).toString('base64');
     const passB64 = Buffer.from(NAPSIS_PASS).toString('base64');
 
-    const h = {
+    const hBase = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/146.0',
       'Accept': 'application/json, text/javascript, */*; q=0.01',
       'Accept-Language': 'es-CL,es-419;q=0.9',
@@ -33,18 +33,18 @@ export default async function handler(req, res) {
       'Host': 'manager2.inexoos.com'
     };
 
-    // PASO 1: valid-user → manager2.inexoos.com
+    // PASO 1: valid-user
     const v = await fetch('https://manager2.inexoos.com/pil/valid-user', {
       method: 'POST',
-      headers: { ...h, 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      headers: { ...hBase, 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
       body: new URLSearchParams({ namePortal: 'napsis', username: userB64 })
     });
     const vData = await v.json();
 
-    // PASO 2: login → manager2.inexoos.com
+    // PASO 2: login
     const l = await fetch('https://manager2.inexoos.com/pil/login', {
       method: 'POST',
-      headers: { ...h, 'Content-Type': 'application/json' },
+      headers: { ...hBase, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: NAPSIS_USER,
         usernameHash: userB64,
@@ -55,46 +55,79 @@ export default async function handler(req, res) {
       })
     });
     const lData = await l.json();
-
     if (!lData?.data?.token) {
       return res.status(200).json({ notas: null, error: `Login falló: ${JSON.stringify(lData)}` });
     }
+    const token = lData.data.token;
 
-    // PASO 3: activar sesión en padres-apoderados.napsis.cl
-    const sesionRes = await fetch(`https://padres-apoderados.napsis.cl/index/login/${lData.data.token}`, {
+    // PASO 3: registros-master-2fa — obtener token de sesión para padres
+    const regRes = await fetch(`https://manager2.inexoos.com/pil/registros-master-2fa?username=${encodeURIComponent(NAPSIS_USER)}`, {
+      method: 'GET',
+      headers: { ...hBase, 'Authorization': `Bearer ${token}` }
+    });
+    const regData = await regRes.json();
+
+    // PASO 4: redirected-system — establecer sesión en padres-apoderados
+    const redirectRes = await fetch('https://manager2.inexoos.com/pil/redirected-system', {
+      method: 'POST',
+      headers: { ...hBase, 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        id_country: '1',
+        id_area: '1',
+        id_system: '4',
+        id_institution: '10657',
+        id_profile: 'apoderado',
+        token: token,
+        url_login: 'https://login.napsis.com/'
+      })
+    });
+    const redirectData = await redirectRes.json();
+    const sessionToken = redirectData?.data?.token || redirectData?.token || token;
+
+    // PASO 5: acceder a padres-apoderados con el token de sesión
+    const sesionRes = await fetch(`https://padres-apoderados.napsis.cl/index/login/${sessionToken}`, {
       headers: {
-        'User-Agent': h['User-Agent'],
+        'User-Agent': hBase['User-Agent'],
         'Accept': 'text/html,application/xhtml+xml',
         'Referer': 'https://login.napsis.com/'
       },
       redirect: 'follow'
     });
-    // Capturar cookies de sesión
-    const sessionCookies = sesionRes.headers.get('set-cookie') || '';
 
-    // PASO 4: notas de Martín con las cookies de sesión
+    // Capturar cookies
+    const cookies = [];
+    const rawCookies = sesionRes.headers.raw?.()?.['set-cookie'] || [];
+    rawCookies.forEach(c => cookies.push(c.split(';')[0]));
+    const cookieStr = cookies.join('; ');
+
+    // PASO 6: obtener las notas
     const NOTAS_URL = 'https://padres-apoderados.napsis.cl/notas/22779097-0/3/2006/36026279/26503';
-    const n = await fetch(NOTAS_URL, {
+    const notasRes = await fetch(NOTAS_URL, {
       headers: {
-        'Cookie': sessionCookies,
-        'Authorization': `Bearer ${lData.data.token}`,
-        'User-Agent': h['User-Agent'],
+        'Cookie': cookieStr,
+        'User-Agent': hBase['User-Agent'],
         'Accept': 'text/html,application/xhtml+xml',
         'Referer': 'https://padres-apoderados.napsis.cl/'
       }
     });
 
-    if (!n.ok) return res.status(200).json({ notas: null, error: `Notas HTTP ${n.status}` });
+    if (!notasRes.ok) {
+      return res.status(200).json({ notas: null, error: `Notas HTTP ${notasRes.status}` });
+    }
 
-    const html = await n.text();
+    const html = await notasRes.text();
     const notas = parsear(html);
 
     if (!notas?.length) {
-      return res.status(200).json({ notas: null, error: 'Sin notas', debug: html.slice(0, 800) });
+      return res.status(200).json({ notas: null, error: 'Sin notas en HTML', debug: html.slice(0, 1000) });
     }
 
     await guardar(notas, SUPABASE_URL, SUPABASE_KEY);
-    return res.status(200).json({ notas, total: notas.reduce((s,r)=>s+r.notas.length,0), mensaje: `${notas.length} ramos OK` });
+    return res.status(200).json({
+      notas,
+      total: notas.reduce((s,r)=>s+r.notas.length,0),
+      mensaje: `${notas.length} ramos actualizados`
+    });
 
   } catch (e) {
     return res.status(200).json({ notas: null, error: e.message });
