@@ -70,6 +70,7 @@
   .evento-chip { font-size:11px; color:var(--muted); }
   .evento-tag { font-size:11px; font-weight:500; padding:2px 8px; border-radius:8px; }
   .tag-estudio  { background:var(--blue-soft); color:var(--blue-mid); }
+  .tag-trabajo  { background:var(--amber-soft); color:var(--amber-dark); }
   .tag-prueba   { background:var(--red-soft); color:var(--red-dark); }
   .tag-bloque   { background:var(--green-soft); color:var(--green-dark); }
   .tag-personal { background:var(--purple-soft); color:var(--purple-dark); }
@@ -268,13 +269,15 @@ function getEventos(){
           evPropios.push({
             id: 'tarea-' + t.id,
             tareaId: t.id,
-            nombre: nombreCal,
+            nombre: (t.tipo==='prueba'||t.tipo==='control' ? '📝 ' :
+                     t.tipo==='trabajo' ? '📤 Entrega: ' : '📌 ') + nombreCal,
             tipo: tipoEv,
             fecha: t.fecha,
             inicio: h1,
             fin: h2,
-            notas: t.ramo || t.notas || '',
-            desdeTareas: true
+            notas: t.ramo || '',
+            desdeTareas: true,
+            esEntrega: true
           });
         }
       });
@@ -370,9 +373,21 @@ function renderEventos(){
       <div style="font-size:12px;color:var(--muted)">Haz clic en + Evento o usa el botón de voz</div>
     </div>`;return;
   }
-  const colores={estudio:'var(--blue)',prueba:'var(--red)',bloque:'var(--green)',personal:'var(--purple)',otro:'var(--muted)'};
-  const tagC={estudio:'tag-estudio',prueba:'tag-prueba',bloque:'tag-bloque',personal:'tag-personal',otro:'tag-otro'};
-  const tagL={estudio:'Estudio',prueba:'Prueba',bloque:'Bloque',personal:'Personal',otro:'Otro'};
+  const colores={
+    estudio:'var(--blue)', prueba:'var(--red)', bloque:'var(--green)',
+    trabajo:'var(--amber)', bloque_estudio:'var(--green)',
+    personal:'var(--purple)', otro:'var(--muted)'
+  };
+  const tagC={
+    estudio:'tag-estudio', prueba:'tag-prueba', bloque:'tag-bloque',
+    trabajo:'tag-trabajo', bloque_estudio:'tag-bloque',
+    personal:'tag-personal', otro:'tag-otro'
+  };
+  const tagL={
+    estudio:'Estudio', prueba:'Prueba', bloque:'Bloque',
+    trabajo:'Entrega', bloque_estudio:'Preparación',
+    personal:'Personal', otro:'Otro'
+  };
   lista.innerHTML=evF.map((e,i)=>`
     <div class="evento-card${eventoExpandido===String(e.id)?' expandido':''}" id="ev-${e.id}" onclick="toggleEvento('${e.id}')" style="animation-delay:${i*0.04}s">
       <div class="evento-hora">
@@ -386,6 +401,8 @@ function renderEventos(){
         <div class="evento-meta">
           ${vista!=='dia'?`<span class="evento-chip">${fmtLabel(e.fecha)}</span>`:''}
           ${e.notas?`<span class="evento-chip">${e.notas}</span>`:''}
+          ${e.esEntrega?`<span class="evento-chip" style="background:var(--amber-soft);color:var(--amber-dark)">📤 fecha de entrega</span>`:''}
+          ${e.esBloquePreparacion||e.tipo==='bloque_estudio'?`<span class="evento-chip" style="background:var(--green-soft);color:var(--green-dark)">🎯 preparación</span>`:''}
         </div>
         <div class="evento-detalle">
           ${e.notas?`<div class="detalle-notas">📝 ${e.notas}</div>`:''}
