@@ -18,11 +18,59 @@
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { font-family:'DM Sans',sans-serif; background:var(--bg); min-height:100dvh; padding-bottom:90px; color:var(--text); }
 
-  /* HEADER */
   header { background:var(--white); border-bottom:1px solid var(--border); padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10; }
   header h1 { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; letter-spacing:-0.3px; }
-  .btn-agregar-nota { display:flex; align-items:center; gap:6px; background:var(--blue); border:none; border-radius:20px; padding:6px 14px; font-size:13px; font-weight:500; color:white; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; }
-  .btn-agregar-nota:active { transform:scale(0.95); }
+  .header-actions { display:flex; gap:6px; align-items:center; }
+  .btn-pill { display:flex; align-items:center; gap:5px; border:none; border-radius:20px; padding:6px 13px; font-size:12px; font-weight:500; color:white; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+  .btn-pill:active { transform:scale(0.95); }
+  .btn-blue { background:var(--blue); }
+  .btn-green { background:var(--green); }
+  .btn-scan { background:linear-gradient(135deg,#7F77DD,#0090F8); }
+
+  /* SCAN MODAL */
+  .scan-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200; align-items:flex-end; justify-content:center; }
+  .scan-overlay.visible { display:flex; }
+  .scan-modal { background:var(--white); border-radius:24px 24px 0 0; padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom)); width:100%; max-width:480px; animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1); }
+  .scan-handle { width:36px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 1.25rem; }
+  .scan-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; margin-bottom:4px; }
+  .scan-sub { font-size:13px; color:var(--muted); font-weight:300; margin-bottom:1.25rem; line-height:1.5; }
+
+  .scan-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1.25rem; }
+  .scan-option { display:flex; flex-direction:column; align-items:center; gap:8px; padding:1.25rem 1rem; border:2px solid var(--border); border-radius:16px; cursor:pointer; transition:all 0.15s; background:var(--bg); }
+  .scan-option:hover, .scan-option.selected { border-color:var(--blue); background:var(--blue-soft); }
+  .scan-option-icon { font-size:28px; }
+  .scan-option-label { font-size:13px; font-weight:500; color:var(--text); text-align:center; }
+  .scan-option-sub { font-size:11px; color:var(--muted); text-align:center; }
+
+  .scan-preview { display:none; margin-bottom:1rem; border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+  .scan-preview img { width:100%; max-height:200px; object-fit:contain; background:var(--bg); }
+  .scan-preview.visible { display:block; }
+
+  .scan-status { display:none; align-items:center; gap:10px; padding:12px 14px; background:var(--blue-soft); border-radius:12px; margin-bottom:1rem; font-size:13px; color:var(--text); }
+  .scan-status.visible { display:flex; }
+  .scan-status.error { background:var(--red-soft); color:var(--red-dark); }
+  .scan-status.success { background:var(--green-soft); color:var(--green-dark); }
+  .scan-spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,0.2); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; flex-shrink:0; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .scan-results { display:none; margin-bottom:1rem; }
+  .scan-results.visible { display:block; }
+  .scan-results-title { font-size:12px; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+  .scan-nota-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:var(--bg); border-radius:10px; margin-bottom:6px; }
+  .scan-nota-nombre { font-size:13px; color:var(--text); flex:1; }
+  .scan-nota-val { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; }
+  .scan-nota-val.buena { color:var(--green); }
+  .scan-nota-val.media { color:var(--amber); }
+  .scan-nota-val.mala { color:var(--red); }
+  .scan-nota-val.vacia { color:var(--muted); font-size:13px; font-weight:400; }
+
+  .btn-scan-confirm { width:100%; padding:12px; border-radius:14px; background:var(--green); border:none; color:white; font-size:15px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; margin-bottom:8px; transition:all 0.15s; display:none; }
+  .btn-scan-confirm.visible { display:block; }
+  .btn-scan-confirm:active { transform:scale(0.98); }
+  .btn-scan-cancel { width:100%; padding:10px; border-radius:14px; background:transparent; border:none; color:var(--muted); font-size:14px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  /* INPUT FILE OCULTO */
+  #fileInputCamara, #fileInputGaleria { display:none; }
 
   /* PROMEDIO BANNER */
   .promedio-banner { margin:1rem 1.25rem 0; background:var(--blue); border-radius:20px; padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
@@ -34,7 +82,6 @@
   .prom-badge { background:rgba(255,255,255,0.2); border-radius:20px; padding:4px 12px; font-size:12px; color:white; font-weight:500; }
   .prom-riesgo { background:var(--red-soft); border-radius:12px; padding:6px 12px; font-size:12px; font-weight:500; color:var(--red-dark); display:flex; align-items:center; gap:4px; }
 
-  /* SEMÁFORO RESUMEN */
   .semaforo-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:1rem 1.25rem 0; }
   .sem-card { border-radius:14px; padding:0.875rem; text-align:center; border:1px solid transparent; }
   .sem-card.verde  { background:var(--green-soft); border-color:var(--green); }
@@ -49,11 +96,9 @@
   .sem-card.amarillo .sem-lbl { color:var(--amber-dark); }
   .sem-card.rojo   .sem-lbl { color:var(--red-dark); }
 
-  /* SECCIÓN */
   section { padding:1rem 1.25rem 0; }
   .section-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.75rem; }
 
-  /* RAMO CARD */
   .ramo-card { background:var(--white); border:1px solid var(--border); border-radius:18px; margin-bottom:10px; overflow:hidden; animation:fadeIn 0.3s ease both; transition:border-color 0.15s; }
   .ramo-card:hover { border-color:var(--blue-mid); }
   .ramo-header { padding:1rem 1.25rem; display:flex; align-items:center; gap:12px; cursor:pointer; }
@@ -71,16 +116,13 @@
   .p-amarillo { color:var(--amber); }
   .p-rojo    { color:var(--red); }
   .ramo-tendencia { font-size:13px; }
-  .ramo-expand { font-size:12px; color:var(--blue); font-weight:500; }
   .ramo-toggle { width:20px; height:20px; border-radius:50%; border:1px solid var(--border); background:var(--bg); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
   .ramo-toggle svg { width:10px; height:10px; stroke:var(--muted); fill:none; stroke-width:2.5; stroke-linecap:round; transition:transform 0.2s; }
   .ramo-card.open .ramo-toggle svg { transform:rotate(180deg); }
 
-  /* DETALLE RAMO */
   .ramo-detail { display:none; border-top:1px solid var(--border); padding:1rem 1.25rem; }
   .ramo-card.open .ramo-detail { display:block; }
 
-  /* SUGERENCIA IA */
   .sugerencia-ia { background:var(--blue-soft); border-radius:12px; padding:0.875rem 1rem; margin-bottom:1rem; display:flex; gap:10px; align-items:flex-start; }
   .sugerencia-ia.alerta { background:var(--red-soft); }
   .sugerencia-ia.warning { background:var(--amber-soft); }
@@ -93,7 +135,6 @@
   .ia-btn-outline { background:transparent; border:1px solid var(--border); color:var(--muted); }
   .ia-btn:active { transform:scale(0.95); }
 
-  /* NOTAS LISTA */
   .notas-lista { display:flex; flex-direction:column; gap:6px; margin-bottom:1rem; }
   .nota-item { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border-radius:10px; }
   .nota-tipo { font-size:11px; font-weight:500; padding:2px 8px; border-radius:8px; flex-shrink:0; }
@@ -101,6 +142,7 @@
   .t-tarea   { background:var(--blue-soft); color:var(--blue-mid); }
   .t-control { background:var(--green-soft); color:var(--green-dark); }
   .t-trabajo { background:var(--amber-soft); color:var(--amber-dark); }
+  .t-napsis  { background:var(--purple-soft); color:var(--purple-dark); }
   .nota-desc { flex:1; font-size:13px; color:var(--muted); font-weight:300; }
   .nota-fecha { font-size:11px; color:var(--muted); font-weight:300; flex-shrink:0; }
   .nota-val { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; flex-shrink:0; }
@@ -108,7 +150,6 @@
   .n-media { color:var(--amber); }
   .n-mala  { color:var(--red); }
 
-  /* MINI GRÁFICO */
   .mini-chart { margin-bottom:1rem; }
   .chart-label { font-size:11px; color:var(--muted); margin-bottom:6px; font-weight:300; }
   .chart-bars { display:flex; align-items:flex-end; gap:4px; height:48px; }
@@ -116,7 +157,6 @@
   .chart-bar { width:100%; border-radius:4px 4px 0 0; min-height:4px; transition:height 0.4s ease; }
   .chart-bar-lbl { font-size:9px; color:var(--muted); }
 
-  /* AGREGAR NOTA RÁPIDA */
   .agregar-nota-row { display:flex; gap:6px; }
   .input-nota { flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--white); outline:none; transition:border-color 0.15s; }
   .input-nota:focus { border-color:var(--blue); }
@@ -124,7 +164,6 @@
   .btn-add-nota { padding:8px 14px; background:var(--blue); border:none; border-radius:10px; color:white; font-size:13px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.12s; }
   .btn-add-nota:active { transform:scale(0.95); }
 
-  /* MODAL */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:flex-end; justify-content:center; }
   .modal-overlay.visible { display:flex; }
   .modal { background:var(--white); border-radius:24px 24px 0 0; padding:1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom)); width:100%; max-width:480px; animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1); }
@@ -139,11 +178,9 @@
   .btn-guardar:active { transform:scale(0.98); }
   .btn-cancelar { width:100%; padding:10px; border-radius:14px; background:transparent; border:none; color:var(--muted); font-size:14px; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:6px; }
 
-  /* NOTIF */
-  .notif { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:var(--text); color:white; border-radius:12px; padding:10px 18px; font-size:13px; font-weight:500; z-index:200; opacity:0; transition:opacity 0.3s; white-space:nowrap; pointer-events:none; }
+  .notif { position:fixed; top:70px; left:50%; transform:translateX(-50%); background:var(--text); color:white; border-radius:12px; padding:10px 18px; font-size:13px; font-weight:500; z-index:300; opacity:0; transition:opacity 0.3s; white-space:nowrap; pointer-events:none; }
   .notif.visible { opacity:1; }
 
-  /* NAV */
   nav { position:fixed; bottom:0; left:0; right:0; background:var(--white); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom)); z-index:10; }
   .nav-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 16px; border-radius:12px; cursor:pointer; border:none; background:transparent; text-decoration:none; }
   .nav-item svg { width:22px; height:22px; }
@@ -157,52 +194,84 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <h1>Mis notas</h1>
-  <div style="display:flex;gap:8px;align-items:center">
+  <div class="header-actions">
     <select id="semSelect" onchange="renderRamos()" style="padding:5px 10px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);outline:none;">
       <option value="1">Semestre 1</option>
       <option value="2">Semestre 2</option>
     </select>
-    <button class="btn-agregar-nota" onclick="abrirModal()">+ Nota</button>
-    <button class="btn-agregar-nota" style="background:var(--green)" onclick="agregarNuevoRamo()">+ Ramo</button>
+    <button class="btn-pill btn-scan" onclick="abrirScan()">📷 Napsis</button>
+    <button class="btn-pill btn-blue" onclick="abrirModal()">+ Nota</button>
   </div>
 </header>
 
-<!-- NOTIF -->
 <div class="notif" id="notif"></div>
+
+<!-- INPUTS OCULTOS -->
+<input type="file" id="fileInputCamara" accept="image/*" capture="environment" onchange="procesarImagen(this)">
+<input type="file" id="fileInputGaleria" accept="image/*" onchange="procesarImagen(this)">
+
+<!-- SCAN MODAL -->
+<div class="scan-overlay" id="scanOverlay" onclick="cerrarScanOverlay(event)">
+  <div class="scan-modal">
+    <div class="scan-handle"></div>
+    <div class="scan-title">📷 Escanear notas de Napsis</div>
+    <div class="scan-sub">Saca una foto a la pantalla de Napsis o sube un screenshot. Claude leerá las notas automáticamente.</div>
+
+    <div class="scan-options" id="scanOptions">
+      <div class="scan-option" onclick="document.getElementById('fileInputCamara').click()">
+        <div class="scan-option-icon">📸</div>
+        <div class="scan-option-label">Cámara</div>
+        <div class="scan-option-sub">Fotografía la pantalla</div>
+      </div>
+      <div class="scan-option" onclick="document.getElementById('fileInputGaleria').click()">
+        <div class="scan-option-icon">🖼️</div>
+        <div class="scan-option-label">Galería / Screenshot</div>
+        <div class="scan-option-sub">Sube una imagen</div>
+      </div>
+    </div>
+
+    <div class="scan-preview" id="scanPreview">
+      <img id="scanPreviewImg" src="" alt="Preview">
+    </div>
+
+    <div class="scan-status" id="scanStatus">
+      <div class="scan-spinner" id="scanSpinner"></div>
+      <span id="scanStatusText">Analizando imagen con IA...</span>
+    </div>
+
+    <div class="scan-results" id="scanResults">
+      <div class="scan-results-title">Notas detectadas</div>
+      <div id="scanResultsList"></div>
+    </div>
+
+    <button class="btn-scan-confirm" id="btnScanConfirm" onclick="confirmarNotasEscaneadas()">
+      ✅ Guardar estas notas
+    </button>
+    <button class="btn-scan-cancel" onclick="cerrarScan()">Cancelar</button>
+  </div>
+</div>
 
 <!-- PROMEDIO BANNER -->
 <div class="promedio-banner">
   <div class="prom-left">
     <span class="prom-label">Promedio general</span>
-    <span class="prom-valor" id="promedioGeneral">5.4</span>
+    <span class="prom-valor" id="promedioGeneral">—</span>
     <span class="prom-sub" id="promedioSub">Actualizado hoy</span>
   </div>
   <div class="prom-right">
     <span class="prom-badge" id="tendenciaBadge">↑ Subiendo</span>
-    <div class="prom-riesgo" id="riesgoBadge">⚠ 1 ramo en riesgo</div>
+    <div class="prom-riesgo" id="riesgoBadge" style="display:none">⚠ 1 ramo en riesgo</div>
   </div>
 </div>
 
-<!-- SEMÁFORO RESUMEN -->
 <div class="semaforo-row">
-  <div class="sem-card verde">
-    <div class="sem-num" id="cntVerde">2</div>
-    <div class="sem-lbl">Bien encaminado</div>
-  </div>
-  <div class="sem-card amarillo">
-    <div class="sem-num" id="cntAmarillo">1</div>
-    <div class="sem-lbl">En observación</div>
-  </div>
-  <div class="sem-card rojo">
-    <div class="sem-num" id="cntRojo">1</div>
-    <div class="sem-lbl">Riesgo real</div>
-  </div>
+  <div class="sem-card verde"><div class="sem-num" id="cntVerde">0</div><div class="sem-lbl">Bien encaminado</div></div>
+  <div class="sem-card amarillo"><div class="sem-num" id="cntAmarillo">0</div><div class="sem-lbl">En observación</div></div>
+  <div class="sem-card rojo"><div class="sem-num" id="cntRojo">0</div><div class="sem-lbl">Riesgo real</div></div>
 </div>
 
-<!-- RAMOS -->
 <section>
   <div class="section-title">Ramos</div>
   <div id="ramosContainer"></div>
@@ -213,7 +282,6 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Agregar nota</div>
-
     <label>Ramo</label>
     <select id="m-ramo">
       <option>Lengua y literatura</option>
@@ -232,7 +300,6 @@
       <option>Participación y argumentación en democracia</option>
       <option>Biología molecular</option>
     </select>
-
     <div class="modal-row">
       <div>
         <label>Nota (1.0 – 7.0)</label>
@@ -248,19 +315,15 @@
         </select>
       </div>
     </div>
-
     <label>Descripción (opcional)</label>
-    <input type="text" id="m-desc" placeholder="Ej: Prueba unidad 2, electromagnetismo">
-
+    <input type="text" id="m-desc" placeholder="Ej: Prueba unidad 2">
     <label>Fecha</label>
     <input type="date" id="m-fecha">
-
     <button class="btn-guardar" onclick="guardarNota()">Guardar nota</button>
     <button class="btn-cancelar" onclick="cerrarModalDirecto()">Cancelar</button>
   </div>
 </div>
 
-<!-- NAV -->
 <nav>
   <button class="nav-item" onclick="window.location='dashboard.html'">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -285,9 +348,10 @@
 </nav>
 
 <script>
+// ─── CONFIG ───
 const NOTAS_KEY = 'martin_notas';
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
 
-// Ramos reales de Martín — 4° Medio (desde imagen Napsis)
 const ramosBase = [
   { nombre:'Lengua y literatura', notas:[], semestre:1 },
   { nombre:'Matemática', notas:[], semestre:1 },
@@ -301,7 +365,7 @@ const ramosBase = [
   { nombre:'Música', notas:[], semestre:1 },
   { nombre:'Ciencias de la salud', notas:[], semestre:1 },
   { nombre:'Probabilidades y estadística inferencial', notas:[
-    { val:7.0, tipo:'prueba', desc:'PP 1', fecha:'2025-04-08' }
+    { val:7.0, tipo:'napsis', desc:'PP1 Napsis', fecha:'2025-04-08' }
   ], semestre:1 },
   { nombre:'Lectura y escritura especializada', notas:[], semestre:1 },
   { nombre:'Participación y argumentación en democracia', notas:[], semestre:1 },
@@ -309,24 +373,182 @@ const ramosBase = [
 ];
 
 function cargarRamos() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(NOTAS_KEY));
-    return saved && saved.length ? saved : ramosBase;
-  } catch { return ramosBase; }
+  try { const s = JSON.parse(localStorage.getItem(NOTAS_KEY)); return s?.length ? s : ramosBase; }
+  catch { return ramosBase; }
 }
-
-function guardarRamos(data) {
-  localStorage.setItem(NOTAS_KEY, JSON.stringify(data));
-}
+function guardarRamos(data) { localStorage.setItem(NOTAS_KEY, JSON.stringify(data)); }
 
 let ramos = cargarRamos();
+let notasEscaneadas = []; // resultado del scan temporal
 
-// ── LÓGICA ──
+// ─── SCAN FLOW ───
+function abrirScan() {
+  notasEscaneadas = [];
+  document.getElementById('scanPreview').classList.remove('visible');
+  document.getElementById('scanStatus').classList.remove('visible','error','success');
+  document.getElementById('scanResults').classList.remove('visible');
+  document.getElementById('btnScanConfirm').classList.remove('visible');
+  document.getElementById('scanOptions').style.display = 'grid';
+  document.getElementById('scanOverlay').classList.add('visible');
+}
+
+function cerrarScan() {
+  document.getElementById('scanOverlay').classList.remove('visible');
+  notasEscaneadas = [];
+}
+
+function cerrarScanOverlay(e) {
+  if (e.target === document.getElementById('scanOverlay')) cerrarScan();
+}
+
+async function procesarImagen(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Preview
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    document.getElementById('scanPreviewImg').src = base64;
+    document.getElementById('scanPreview').classList.add('visible');
+    document.getElementById('scanOptions').style.display = 'none';
+
+    // Status: analizando
+    const status = document.getElementById('scanStatus');
+    status.classList.remove('error','success');
+    status.classList.add('visible');
+    document.getElementById('scanSpinner').style.display = 'block';
+    document.getElementById('scanStatusText').textContent = 'Analizando imagen con IA...';
+
+    try {
+      const imageData = base64.split(',')[1];
+      const mediaType = file.type || 'image/jpeg';
+
+      const response = await fetch(CLAUDE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: mediaType, data: imageData }
+              },
+              {
+                type: 'text',
+                text: `Esta es una captura del sistema escolar Napsis de Chile. Extrae TODAS las asignaturas y sus notas/promedios.
+Responde SOLO con un JSON válido, sin texto adicional, sin markdown:
+{
+  "notas": [
+    {"asignatura": "nombre completo", "pp": 6.5, "pf": null},
+    ...
+  ]
+}
+- "pp" es el promedio del período (PP1, PP2, etc). Si hay varios, toma el más reciente.
+- "pf" es el promedio final (PF). null si no existe.
+- Si una asignatura no tiene nota, igual inclúyela con pp: null y pf: null.
+- Usa los nombres completos de las asignaturas como aparecen en la tabla.`
+              }
+            ]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content?.[0]?.text || '';
+
+      // Parsear JSON de la respuesta
+      const clean = text.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
+
+      if (!parsed.notas?.length) throw new Error('No se detectaron notas');
+
+      notasEscaneadas = parsed.notas;
+
+      // Mostrar resultados
+      status.classList.remove('visible');
+      mostrarResultadosScan(notasEscaneadas);
+
+    } catch (err) {
+      document.getElementById('scanSpinner').style.display = 'none';
+      status.classList.add('error');
+      document.getElementById('scanStatusText').textContent = '❌ Error al analizar: ' + err.message;
+    }
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function mostrarResultadosScan(notas) {
+  const lista = document.getElementById('scanResultsList');
+  lista.innerHTML = '';
+
+  const conNota = notas.filter(n => n.pp !== null || n.pf !== null);
+  const sinNota = notas.filter(n => n.pp === null && n.pf === null);
+
+  conNota.forEach(n => {
+    const val = n.pf ?? n.pp;
+    const colorClass = val >= 5.5 ? 'buena' : val >= 4.0 ? 'media' : 'mala';
+    lista.innerHTML += `
+      <div class="scan-nota-item">
+        <span class="scan-nota-nombre">${n.asignatura}</span>
+        <span class="scan-nota-val ${colorClass}">${val?.toFixed ? val.toFixed(1) : val}</span>
+      </div>`;
+  });
+
+  if (sinNota.length > 0) {
+    lista.innerHTML += `<div style="font-size:11px;color:var(--muted);padding:6px 4px">${sinNota.length} ramos sin nota aún (no se guardarán)</div>`;
+  }
+
+  document.getElementById('scanResults').classList.add('visible');
+  document.getElementById('btnScanConfirm').classList.add('visible');
+}
+
+function confirmarNotasEscaneadas() {
+  if (!notasEscaneadas.length) return;
+  const hoy = new Date().toISOString().split('T')[0];
+  let guardadas = 0;
+
+  notasEscaneadas.forEach(n => {
+    if (n.pp === null && n.pf === null) return;
+    const val = n.pf ?? n.pp;
+    if (!val || val < 1 || val > 7) return;
+
+    // Buscar ramo existente (fuzzy match)
+    let ramo = ramos.find(r => r.nombre.toLowerCase() === n.asignatura.toLowerCase());
+    if (!ramo) {
+      ramo = ramos.find(r =>
+        r.nombre.toLowerCase().includes(n.asignatura.toLowerCase().slice(0,6)) ||
+        n.asignatura.toLowerCase().includes(r.nombre.toLowerCase().slice(0,6))
+      );
+    }
+    if (!ramo) {
+      ramo = { nombre: n.asignatura, notas: [], semestre: 1 };
+      ramos.push(ramo);
+    }
+
+    // Reemplazar nota napsis anterior del mismo tipo o agregar nueva
+    const existeIdx = ramo.notas.findIndex(x => x.tipo === 'napsis');
+    const nuevaNota = { val: parseFloat(val), tipo: 'napsis', desc: 'Desde Napsis', fecha: hoy };
+    if (existeIdx >= 0) ramo.notas[existeIdx] = nuevaNota;
+    else ramo.notas.push(nuevaNota);
+    guardadas++;
+  });
+
+  guardarRamos(ramos);
+  cerrarScan();
+  render();
+  mostrarNotif(`✅ ${guardadas} notas sincronizadas desde Napsis`);
+}
+
+// ─── LÓGICA NOTAS ───
 function promedio(notas) {
   if (!notas.length) return 0;
   return notas.reduce((s,n) => s + n.val, 0) / notas.length;
 }
-
 function tendencia(notas) {
   if (notas.length < 2) return '→';
   const sorted = [...notas].sort((a,b) => new Date(a.fecha)-new Date(b.fecha));
@@ -337,93 +559,48 @@ function tendencia(notas) {
   if (primera - segunda > 0.2) return '↓';
   return '→';
 }
-
-function semaforo(prom, tend) {
+function semaforo(prom) {
   if (prom >= 5.5) return 'verde';
   if (prom >= 4.5) return 'amarillo';
   return 'rojo';
 }
-
 function colorProm(prom) {
   if (prom >= 5.5) return 'p-verde';
   if (prom >= 4.5) return 'p-amarillo';
   return 'p-rojo';
 }
-
 function colorNota(val) {
   if (val >= 5.5) return 'n-buena';
   if (val >= 4.0) return 'n-media';
   return 'n-mala';
 }
-
 function colorSem(sem) {
   return { verde:'s-verde', amarillo:'s-amarillo', rojo:'s-rojo' }[sem];
 }
-
 function sugerenciaIA(ramo, prom, tend, sem) {
-  if (sem === 'rojo') {
-    return {
-      tipo: 'alerta',
-      icono: '🚨',
-      titulo: `${ramo} necesita atención urgente`,
-      texto: `Tu promedio es ${prom.toFixed(1)} y va en bajada. Necesitas al menos un 6.0 en la próxima evaluación para recuperarte.`,
-      acciones: [{ label:'Bloquear tiempo de estudio', tipo:'blue' }, { label:'Ver tareas pendientes', tipo:'outline' }]
-    };
-  }
-  if (sem === 'amarillo') {
-    return {
-      tipo: 'warning',
-      icono: '⚠️',
-      titulo: `${ramo} en observación`,
-      texto: tend === '↓'
-        ? `El promedio va bajando (${prom.toFixed(1)}). Conviene repasar antes de la próxima prueba.`
-        : `Estás en ${prom.toFixed(1)}, cerca del límite. Un buen control puede asegurar el ramo.`,
-      acciones: [{ label:'Iniciar Pomodoro', tipo:'blue' }]
-    };
-  }
-  if (tend === '↑') {
-    return {
-      tipo: 'positivo',
-      icono: '🎯',
-      titulo: `¡${ramo} va muy bien!`,
-      texto: `Promedio ${prom.toFixed(1)} y en alza. Sigue así, estás en buen camino.`,
-      acciones: []
-    };
-  }
+  if (sem === 'rojo') return { tipo:'alerta', icono:'🚨', titulo:`${ramo} necesita atención urgente`, texto:`Promedio ${prom.toFixed(1)} y en riesgo. Necesitas al menos 6.0 en la próxima evaluación.`, acciones:[{label:'Iniciar Pomodoro',tipo:'blue'}] };
+  if (sem === 'amarillo') return { tipo:'warning', icono:'⚠️', titulo:`${ramo} en observación`, texto:`Estás en ${prom.toFixed(1)}, cerca del límite. Un buen control puede asegurar el ramo.`, acciones:[{label:'Iniciar Pomodoro',tipo:'blue'}] };
+  if (tend === '↑') return { tipo:'positivo', icono:'🎯', titulo:`¡${ramo} va muy bien!`, texto:`Promedio ${prom.toFixed(1)} y en alza. Sigue así.`, acciones:[] };
   return null;
 }
 
-// ── RENDER ──
+// ─── RENDER ───
 function renderRamos() { render(); }
 
 function render() {
   const semActivo = parseInt(document.getElementById('semSelect')?.value || '1');
   const container = document.getElementById('ramosContainer');
   container.innerHTML = '';
-
   let sumaProm = 0, cntVerde = 0, cntAmarillo = 0, cntRojo = 0;
   const ramosFiltrados = ramos.filter(r => (r.semestre || 1) === semActivo);
 
-  if (ramosFiltrados.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">
-      No hay ramos en este semestre.
-      <span style="color:var(--blue);cursor:pointer;font-weight:500" onclick="agregarNuevoRamo()">+ Agregar ramo</span>
-    </div>`;
+  if (!ramosFiltrados.length) {
+    container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">No hay ramos en este semestre.</div>`;
     document.getElementById('promedioGeneral').textContent = '—';
-    document.getElementById('cntVerde').textContent = 0;
-    document.getElementById('cntAmarillo').textContent = 0;
-    document.getElementById('cntRojo').textContent = 0;
-    document.getElementById('riesgoBadge').style.display = 'none';
     return;
   }
 
-  // Ordenar: primero los que tienen notas (por semáforo riesgo primero), luego los vacíos
-  const conNotas = ramosFiltrados.filter(r => r.notas.length > 0)
-    .sort((a,b) => {
-      const pa = a.notas.reduce((s,n)=>s+n.val,0)/a.notas.length;
-      const pb = b.notas.reduce((s,n)=>s+n.val,0)/b.notas.length;
-      return pa - pb; // riesgo primero
-    });
+  const conNotas = ramosFiltrados.filter(r => r.notas.length > 0).sort((a,b) => promedio(a.notas) - promedio(b.notas));
   const sinNotas = ramosFiltrados.filter(r => r.notas.length === 0);
   const ramosOrdenados = [...conNotas, ...sinNotas];
 
@@ -441,66 +618,58 @@ function render() {
     const sug = sugerenciaIA(r.nombre, prom, tend, sem);
     const sorted = [...r.notas].sort((a,b) => new Date(b.fecha)-new Date(a.fecha));
 
-    const maxVal = 7;
-    const barsHTML = sorted.slice().reverse().map((n,i) => {
-      const h = Math.round((n.val / maxVal) * 100);
+    const barsHTML = [...sorted].reverse().map(n => {
+      const h = Math.round((n.val / 7) * 100);
       const col = n.val >= 5.5 ? 'var(--green)' : n.val >= 4.0 ? 'var(--amber)' : 'var(--red)';
-      const tipos = { prueba:'P', control:'C', tarea:'T', trabajo:'Tr' };
-      return `<div class="chart-bar-wrap">
-        <div class="chart-bar" style="height:${h}%;background:${col}"></div>
-        <div class="chart-bar-lbl">${tipos[n.tipo]||'N'}</div>
-      </div>`;
+      const tipos = { prueba:'P', control:'C', tarea:'T', trabajo:'Tr', napsis:'N' };
+      return `<div class="chart-bar-wrap"><div class="chart-bar" style="height:${h}%;background:${col}"></div><div class="chart-bar-lbl">${tipos[n.tipo]||'N'}</div></div>`;
     }).join('');
 
     const notasHTML = sorted.map((n,i) => `
       <div class="nota-item">
-        <span class="nota-tipo t-${n.tipo}">${n.tipo.charAt(0).toUpperCase()+n.tipo.slice(1)}</span>
+        <span class="nota-tipo t-${n.tipo}">${n.tipo === 'napsis' ? 'Napsis' : n.tipo.charAt(0).toUpperCase()+n.tipo.slice(1)}</span>
         <span class="nota-desc">${n.desc || '—'}</span>
         <span class="nota-fecha">${formatFecha(n.fecha)}</span>
-        <span class="nota-val ${colorNota(n.val)}" style="cursor:pointer" onclick="editarNota(${globalIdx},${i})" title="Clic para editar">${n.val.toFixed(1)} ✏️</span>
+        <span class="nota-val ${colorNota(n.val)}">${n.val.toFixed(1)}</span>
       </div>`).join('');
 
     const sugHTML = sug ? `
       <div class="sugerencia-ia ${sug.tipo === 'alerta' ? 'alerta' : sug.tipo === 'warning' ? 'warning' : ''}">
         <div class="ia-icon">${sug.icono}</div>
-        <div class="ia-texto">
-          <strong>${sug.titulo}</strong>
-          ${sug.texto}
-          ${sug.acciones.length ? `<div class="ia-action">
-            ${sug.acciones.map(a => `<button class="ia-btn ia-btn-${a.tipo}" onclick="accionIA('${a.label}', ${globalIdx})">${a.label}</button>`).join('')}
-          </div>` : ''}
+        <div class="ia-texto"><strong>${sug.titulo}</strong>${sug.texto}
+          ${sug.acciones.length ? `<div class="ia-action">${sug.acciones.map(a=>`<button class="ia-btn ia-btn-${a.tipo}" onclick="accionIA('${a.label}',${globalIdx})">${a.label}</button>`).join('')}</div>` : ''}
         </div>
       </div>` : '';
 
+    if (fIdx === conNotas.length && sinNotas.length > 0) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'padding:8px 4px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-top:4px';
+      sep.textContent = 'Sin notas registradas';
+      container.appendChild(sep);
+    }
+
     const card = document.createElement('div');
     card.className = 'ramo-card';
-    card.setAttribute('data-gidx', globalIdx);
-
-    const sinNotasClass = r.notas.length === 0 ? 'style="opacity:0.55"' : '';
+    const sinNotasStyle = r.notas.length === 0 ? 'style="opacity:0.55"' : '';
     card.innerHTML = `
-      <div class="ramo-header" onclick="toggleRamo(this)" ${sinNotasClass}>
+      <div class="ramo-header" onclick="toggleRamo(this)" ${sinNotasStyle}>
         <div class="semaforo-dot ${r.notas.length ? colorSem(sem) : 's-vacio'}"></div>
         <div class="ramo-info">
           <div class="ramo-nombre">${r.nombre}</div>
-          <div class="ramo-meta">${r.notas.length ? `${r.notas.length} evaluaciones · ${tend === '↑' ? 'Subiendo' : tend === '↓' ? 'Bajando' : 'Estable'}` : 'Sin notas aún — toca para agregar'}</div>
+          <div class="ramo-meta">${r.notas.length ? `${r.notas.length} evaluaciones · ${tend === '↑' ? 'Subiendo' : tend === '↓' ? 'Bajando' : 'Estable'}` : 'Sin notas aún'}</div>
         </div>
         <div class="ramo-right">
           <div class="ramo-promedio ${colorProm(prom)}">${r.notas.length ? prom.toFixed(1) : '—'}</div>
           <div class="ramo-tendencia">${r.notas.length ? tend : ''}</div>
         </div>
-        <div class="ramo-toggle">
-          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
+        <div class="ramo-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
       </div>
       <div class="ramo-detail">
         ${sugHTML}
         ${r.notas.length > 0 ? `
-          <div class="mini-chart">
-            <div class="chart-label">Evolución de notas</div>
-            <div class="chart-bars">${barsHTML}</div>
-          </div>
-          <div class="notas-lista">${notasHTML}</div>` : `
-          <div style="color:var(--muted);font-size:13px;padding:.5rem 0">Sin notas registradas aún.</div>`}
+          <div class="mini-chart"><div class="chart-label">Evolución</div><div class="chart-bars">${barsHTML}</div></div>
+          <div class="notas-lista">${notasHTML}</div>` :
+          `<div style="color:var(--muted);font-size:13px;padding:.5rem 0">Sin notas registradas aún.</div>`}
         <div class="agregar-nota-row">
           <select class="select-tipo-nota" id="tipo-${globalIdx}">
             <option value="prueba">Prueba</option>
@@ -511,68 +680,34 @@ function render() {
           <input class="input-nota" type="number" min="1" max="7" step="0.1" placeholder="5.5" id="nota-${globalIdx}">
           <button class="btn-add-nota" onclick="agregarNotaRapida(${globalIdx})">+</button>
         </div>
-      </div>
-    `;
-    // Separador entre ramos con notas y sin notas
-    if (fIdx === conNotas.length - 1 && sinNotas.length > 0) {
-      const sep = document.createElement('div');
-      sep.style.cssText = 'padding:8px 4px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-top:4px';
-      sep.textContent = 'Sin notas registradas';
-      container.appendChild(sep);
-    }
+      </div>`;
     container.appendChild(card);
   });
 
   const promGeneral = sumaProm / ramosFiltrados.length;
-  document.getElementById('promedioGeneral').textContent = promGeneral.toFixed(1);
+  document.getElementById('promedioGeneral').textContent = promGeneral > 0 ? promGeneral.toFixed(1) : '—';
   document.getElementById('cntVerde').textContent = cntVerde;
   document.getElementById('cntAmarillo').textContent = cntAmarillo;
   document.getElementById('cntRojo').textContent = cntRojo;
-
   const badge = document.getElementById('riesgoBadge');
-  if (cntRojo === 0) {
-    badge.style.display = 'none';
-  } else {
-    badge.style.display = 'flex';
-    badge.textContent = `⚠ ${cntRojo} ramo${cntRojo > 1 ? 's' : ''} en riesgo`;
-  }
+  badge.style.display = cntRojo > 0 ? 'flex' : 'none';
+  if (cntRojo > 0) badge.textContent = `⚠ ${cntRojo} ramo${cntRojo>1?'s':''} en riesgo`;
 }
 
-function toggleRamo(headerEl) {
-  const card = headerEl.closest('.ramo-card');
-  card.classList.toggle('open');
-}
+function toggleRamo(headerEl) { headerEl.closest('.ramo-card').classList.toggle('open'); }
 
 function agregarNotaRapida(idx) {
   const val = parseFloat(document.getElementById(`nota-${idx}`).value);
   const tipo = document.getElementById(`tipo-${idx}`).value;
-  if (isNaN(val) || val < 1 || val > 7) {
-    mostrarNotif('Ingresa una nota válida entre 1.0 y 7.0');
-    return;
-  }
-  ramos[idx].notas.push({
-    val, tipo, desc: tipo.charAt(0).toUpperCase() + tipo.slice(1),
-    fecha: new Date().toISOString().split('T')[0]
-  });
+  if (isNaN(val) || val < 1 || val > 7) { mostrarNotif('Ingresa una nota válida entre 1.0 y 7.0'); return; }
+  ramos[idx].notas.push({ val, tipo, desc: tipo, fecha: new Date().toISOString().split('T')[0] });
   guardarRamos(ramos);
   render();
-  mostrarNotif(`✅ Nota ${val.toFixed(1)} agregada en ${ramos[idx].nombre}`);
-  // Re-abrir el card
-  setTimeout(() => {
-    const cards = document.querySelectorAll('.ramo-card');
-    if (cards[idx]) cards[idx].classList.add('open');
-  }, 50);
+  mostrarNotif(`✅ Nota ${val.toFixed(1)} agregada`);
 }
 
 function accionIA(label, idx) {
-  if (label.includes('Pomodoro')) {
-    localStorage.setItem('martin_pomo_tarea', `Estudiar ${ramos[idx].nombre}`);
-    window.location = 'pomodoro.html';
-  } else if (label.includes('Bloquear')) {
-    mostrarNotif(`📅 Abre el calendario para bloquear tiempo de ${ramos[idx].nombre}`);
-  } else if (label.includes('tareas')) {
-    window.location = 'tareas.html';
-  }
+  if (label.includes('Pomodoro')) { localStorage.setItem('martin_pomo_tarea', `Estudiar ${ramos[idx].nombre}`); window.location = 'pomodoro.html'; }
 }
 
 function formatFecha(str) {
@@ -582,32 +717,22 @@ function formatFecha(str) {
   return `${d.getDate()} ${meses[d.getMonth()]}`;
 }
 
-// MODAL
 function abrirModal() {
   document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
   document.getElementById('modalOverlay').classList.add('visible');
 }
-function cerrarModal(e) {
-  if (e.target === document.getElementById('modalOverlay')) cerrarModalDirecto();
-}
-function cerrarModalDirecto() {
-  document.getElementById('modalOverlay').classList.remove('visible');
-}
+function cerrarModal(e) { if (e.target === document.getElementById('modalOverlay')) cerrarModalDirecto(); }
+function cerrarModalDirecto() { document.getElementById('modalOverlay').classList.remove('visible'); }
 function guardarNota() {
-  const ramo  = document.getElementById('m-ramo').value;
-  const val   = parseFloat(document.getElementById('m-nota').value);
-  const tipo  = document.getElementById('m-tipo').value;
-  const desc  = document.getElementById('m-desc').value.trim();
+  const ramo = document.getElementById('m-ramo').value;
+  const val  = parseFloat(document.getElementById('m-nota').value);
+  const tipo = document.getElementById('m-tipo').value;
+  const desc = document.getElementById('m-desc').value.trim();
   const fecha = document.getElementById('m-fecha').value;
-
-  if (isNaN(val) || val < 1 || val > 7) {
-    document.getElementById('m-nota').focus(); return;
-  }
-
+  if (isNaN(val) || val < 1 || val > 7) { document.getElementById('m-nota').focus(); return; }
   let r = ramos.find(x => x.nombre === ramo);
   if (!r) { r = { nombre: ramo, notas: [] }; ramos.push(r); }
   r.notas.push({ val, tipo, desc: desc || tipo, fecha });
-
   guardarRamos(ramos);
   cerrarModalDirecto();
   document.getElementById('m-nota').value = '';
@@ -623,16 +748,13 @@ function mostrarNotif(msg) {
   setTimeout(() => n.classList.remove('visible'), 3000);
 }
 
-document.addEventListener('keydown', e => { if (e.key==='Escape') cerrarModalDirecto(); });
-
+document.addEventListener('keydown', e => { if (e.key==='Escape') { cerrarModalDirecto(); cerrarScan(); } });
 render();
 </script>
 
-<!-- Supabase + Sync -->
 <script src="supabase.js"></script>
 <script src="sync-manager.js"></script>
 <script>
-  // Iniciar sync al cargar la página
   if (typeof SyncManager !== 'undefined') {
     SyncManager.init().catch(e => console.log('Sync offline:', e));
   }
