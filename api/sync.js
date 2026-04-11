@@ -117,7 +117,12 @@ export default async function handler(req, res) {
             });
           });
         });
-        if (notasFlat.length > 0) await sbUpsert('notas_ramos', notasFlat);
+  // Borrar notas anteriores antes de insertar las nuevas
+await fetch(`${SUPABASE_URL}/rest/v1/notas_ramos?id=gte.0`, {
+  method: 'DELETE',
+  headers: { ...h, 'Prefer': 'return=minimal' }
+});
+if (notasFlat.length > 0) await sbUpsert('notas_ramos', notasFlat);
       }
 
       // CONFIG
