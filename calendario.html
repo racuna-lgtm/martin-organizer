@@ -433,7 +433,8 @@ function eliminarEvento(id){
   eventos=eventos.filter(e=>String(e.id)!==String(id));
   saveEventos(eventos); eventoExpandido=null;
   renderCalendario(); renderEventos();
-  mostrarNotif('🗑 Evento eliminado');
+ mostrarNotif('🗑 Evento eliminado');
+if (typeof SyncManager !== 'undefined') SyncManager.push().catch(()=>{});
 }
 
 function abrirModal(f){document.getElementById('m-fecha').value=f||fmt(diaSeleccionado);document.getElementById('m-nombre').value='';document.getElementById('m-notas').value='';document.getElementById('modalOverlay').classList.add('visible');}
