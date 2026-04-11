@@ -56,15 +56,28 @@ export default async function handler(req, res) {
     });
     const lData = await l.json();
 
-    if (!lData?.token) {
+    if (!lData?.data?.token) {
       return res.status(200).json({ notas: null, error: `Login falló: ${JSON.stringify(lData)}` });
     }
 
-    // PASO 3: notas de Martín
+    // PASO 3: activar sesión en padres-apoderados.napsis.cl
+    const sesionRes = await fetch(`https://padres-apoderados.napsis.cl/index/login/${lData.data.token}`, {
+      headers: {
+        'User-Agent': h['User-Agent'],
+        'Accept': 'text/html,application/xhtml+xml',
+        'Referer': 'https://login.napsis.com/'
+      },
+      redirect: 'follow'
+    });
+    // Capturar cookies de sesión
+    const sessionCookies = sesionRes.headers.get('set-cookie') || '';
+
+    // PASO 4: notas de Martín con las cookies de sesión
     const NOTAS_URL = 'https://padres-apoderados.napsis.cl/notas/22779097-0/3/2006/36026279/26503';
     const n = await fetch(NOTAS_URL, {
       headers: {
-        'Authorization': `Bearer ${lData.token}`,
+        'Cookie': sessionCookies,
+        'Authorization': `Bearer ${lData.data.token}`,
         'User-Agent': h['User-Agent'],
         'Accept': 'text/html,application/xhtml+xml',
         'Referer': 'https://padres-apoderados.napsis.cl/'
