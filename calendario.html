@@ -448,7 +448,8 @@ function guardarEvento(){
   eventos.push(ev); saveEventos(eventos); cerrarModalDirecto();
   diaSeleccionado=new Date(ev.fecha+'T12:00:00');
   renderCalendario(); renderEventos();
-  mostrarNotif(`✅ "${ev.nombre}" agregado`);
+mostrarNotif(`✅ "${ev.nombre}" agregado`);
+if (typeof SyncManager !== 'undefined') SyncManager.push().catch(()=>{});
 }
 
 // VOZ
