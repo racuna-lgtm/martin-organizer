@@ -244,9 +244,12 @@ function getEventos(){
     const colores = {estudio:'var(--blue)',prueba:'var(--red)',bloque:'var(--green)',personal:'var(--purple)',otro:'var(--muted)'};
     tareas.filter(t => t.fecha && !t.done) // Todas las tareas con fecha van al calendario
       .forEach(t => {
-        // Solo agregar si no existe ya un evento vinculado a esta tarea
-        const yaVinculado = evPropios.find(e => String(e.tareaId) === String(t.id));
-        if (!yaVinculado) {
+        // Solo agregar si no existe ya el evento de ENTREGA para esta tarea
+        // (el bloque de preparación tiene el mismo tareaId pero NO es de entrega)
+        const yaVinculadoEntrega = evPropios.find(e =>
+          String(e.tareaId) === String(t.id) && e.esEntrega
+        );
+        if (!yaVinculadoEntrega) {
           const tipoEv = t.tipo === 'prueba' ? 'prueba' : t.tipo === 'trabajo' ? 'estudio' : 'bloque';
           const h1 = t.hora || (t.tipo === 'prueba' ? '08:00' : '16:00');
           const h2 = t.horaFin || (t.tipo === 'prueba' ? '10:00' : '18:00');
