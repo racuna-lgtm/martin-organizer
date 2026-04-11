@@ -581,6 +581,7 @@ function colorSem(sem) {
   return { verde:'s-verde', amarillo:'s-amarillo', rojo:'s-rojo' }[sem];
 }
 function sugerenciaIA(ramo, prom, tend, sem) {
+  if (!prom || prom === 0) return null;
   if (sem === 'rojo') return { tipo:'alerta', icono:'🚨', titulo:`${ramo} necesita atención urgente`, texto:`Promedio ${prom.toFixed(1)} y en riesgo. Necesitas al menos 6.0 en la próxima evaluación.`, acciones:[{label:'Iniciar Pomodoro',tipo:'blue'}] };
   if (sem === 'amarillo') return { tipo:'warning', icono:'⚠️', titulo:`${ramo} en observación`, texto:`Estás en ${prom.toFixed(1)}, cerca del límite. Un buen control puede asegurar el ramo.`, acciones:[{label:'Iniciar Pomodoro',tipo:'blue'}] };
   if (tend === '↑') return { tipo:'positivo', icono:'🎯', titulo:`¡${ramo} va muy bien!`, texto:`Promedio ${prom.toFixed(1)} y en alza. Sigue así.`, acciones:[] };
