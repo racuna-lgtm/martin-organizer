@@ -1,9 +1,8 @@
-// sync-manager.js
+// sync-manager.js — v1.2
 const VERCEL_URL = 'https://martin-organizer.vercel.app';
 
 const SyncManager = {
 
-  // Timestamp del último push exitoso (para no hacer pull encima de cambios locales)
   _ultimoPush: 0,
 
   async push() {
@@ -20,24 +19,20 @@ const SyncManager = {
       const res = await fetch(`${VERCEL_URL}/api/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Siempre mandamos tareas y eventos aunque estén vacíos
-        // para que el servidor pueda eliminar lo que ya no existe
         body: JSON.stringify({ tareas, eventos, notas, config })
       });
 
       if (res.ok) {
         this._ultimoPush = Date.now();
-        console.log('✅ Sync push OK —', tareas.length, 'tareas,', eventos.length, 'eventos');
+        console.log('✅ Push OK —', tareas.length, 'tareas,', eventos.length, 'eventos');
       }
     } catch(e) {
-      console.log('⚠️ Push offline, datos guardados localmente');
+      console.log('⚠️ Push offline');
     }
   },
 
   async pull() {
     try {
-      // Si hicimos push hace menos de 10 segundos, no hacer pull
-      // (evita que Supabase sobreescriba cambios locales recién guardados)
       if (Date.now() - this._ultimoPush < 10000) {
         console.log('⏭ Pull omitido — push reciente');
         return;
@@ -47,17 +42,15 @@ const SyncManager = {
       if (!res.ok) return;
       const data = await res.json();
 
-      // TAREAS: solo actualizar si Supabase tiene más datos que localStorage
+      // TAREAS
       if (data.tareas && data.tareas.length > 0) {
-        const locales = JSON.parse(localStorage.getItem('martin_tareas') || '[]');
-        // Supabase manda como fuente de verdad si tiene datos
         const tareas = data.tareas.map(t => ({
           id: t.id, nombre: t.nombre, ramo: t.ramo, tipo: t.tipo,
           fecha: t.fecha, urgencia: t.urgencia, hora: t.hora,
           horaFin: t.hora_fin, notas: t.notas, done: t.done
         }));
         localStorage.setItem('martin_tareas', JSON.stringify(tareas));
-        console.log(`✅ Pull: ${tareas.length} tareas desde Supabase`);
+        console.log(`✅ Pull: ${tareas.length} tareas`);
       }
 
       // EVENTOS
@@ -68,14 +61,52 @@ const SyncManager = {
           esEntrega: e.es_entrega, esBloquePreparacion: e.es_bloque_preparacion
         }));
         localStorage.setItem('martin_eventos', JSON.stringify(eventos));
-        console.log(`✅ Pull: ${eventos.length} eventos desde Supabase`);
+        console.log(`✅ Pull: ${eventos.length} eventos`);
+      }
+
+      // FIX DASHBOARD: reconstruir martin_notas desde notas_ramos de Supabase
+      // Supabase guarda filas planas: {ramo, val, tipo, descripcion, fecha, semestre}
+      // El dashboard lee martin_notas con estructura: [{nombre, notas:[], semestre}]
+      if (data.notas && data.notas.length > 0) {
+        // Agrupar filas planas por nombre de ramo
+        const ramosMap = {};
+        data.notas.forEach(n => {
+          if (!ramosMap[n.ramo]) {
+            ramosMap[n.ramo] = { nombre: n.ramo, notas: [], semestre: n.semestre || 1 };
+          }
+          ramosMap[n.ramo].notas.push({
+            val: n.val,
+            tipo: n.tipo || 'napsis',
+            desc: n.descripcion || '',
+            fecha: n.fecha || new Date().toISOString().split('T')[0]
+          });
+        });
+
+        // Fusionar con ramos locales para preservar los que no están en Supabase
+        const ramosLocales = JSON.parse(localStorage.getItem('martin_notas') || '[]');
+        const procesados = new Set();
+        const ramosActualizados = ramosLocales.map(r => {
+          if (ramosMap[r.nombre]) {
+            procesados.add(r.nombre);
+            return { ...r, notas: ramosMap[r.nombre].notas, semestre: ramosMap[r.nombre].semestre };
+          }
+          return r;
+        });
+
+        // Agregar ramos que vienen de Supabase pero no estaban en local
+        Object.values(ramosMap).forEach(r => {
+          if (!procesados.has(r.nombre)) ramosActualizados.push(r);
+        });
+
+        localStorage.setItem('martin_notas', JSON.stringify(ramosActualizados));
+        console.log(`✅ Pull: notas reconstruidas para ${ramosActualizados.length} ramos`);
       }
 
       // CONFIG
       if (data.config && data.config.length > 0) {
         data.config.forEach(c => {
-          if (c.clave === 'nombre' && c.valor) localStorage.setItem('martin_nombre', c.valor);
-          if (c.clave === 'racha'  && c.valor) localStorage.setItem('martin_racha', c.valor);
+          if (c.clave === 'nombre'    && c.valor) localStorage.setItem('martin_nombre', c.valor);
+          if (c.clave === 'racha'     && c.valor) localStorage.setItem('martin_racha', c.valor);
           if (c.clave === 'partido_u' && c.valor) localStorage.setItem('martin_partido_u', c.valor);
         });
       }
@@ -84,24 +115,20 @@ const SyncManager = {
     }
   },
 
-  // Reset completo: limpia localStorage Y Supabase
   async reset() {
     try {
-      // 1. Limpiar localStorage
       localStorage.removeItem('martin_tareas');
       localStorage.removeItem('martin_eventos');
       localStorage.removeItem('martin_notas');
 
-      // 2. Decirle al servidor que limpie Supabase también
       await fetch(`${VERCEL_URL}/api/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reset: true, tareas: [], eventos: [], notas: [], config: {} })
       });
-
-      console.log('🧹 Reset completo — localStorage y Supabase limpiados');
+      console.log('🧹 Reset completo');
     } catch(e) {
-      console.log('⚠️ Reset solo local (offline)');
+      console.log('⚠️ Reset solo local');
     }
   },
 
@@ -121,16 +148,16 @@ const SyncManager = {
     } catch(e) { return null; }
   },
 
+  // Método auxiliar para push inmediato desde calendario
+  pushInmediato() {
+    setTimeout(() => this.push(), 300);
+  },
+
   async init() {
-    // 1. Pull desde Supabase
     await this.pull();
-    // 2. Cargar partido de la U
     await this.cargarPartido();
-    // 3. Push cada 3 minutos
     setInterval(() => this.push(), 3 * 60 * 1000);
-    // 4. Push al cerrar pestaña
     window.addEventListener('beforeunload', () => this.push());
-    // 5. Push inicial después de 5 segundos
     setTimeout(() => this.push(), 5000);
   }
 };
