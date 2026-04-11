@@ -805,28 +805,41 @@
     if (!tarea.fecha) return;
     try {
       const eventos = JSON.parse(localStorage.getItem('martin_eventos')) || [];
-      const yaExiste = eventos.find(e => String(e.tareaId) === String(tarea.id));
-      if (yaExiste) return;
-      // Tipo de evento según tipo de tarea
-      const tipoEv = tarea.tipo === 'prueba' ? 'prueba' : tarea.tipo === 'trabajo' ? 'estudio' : 'bloque';
-      // Hora: usa la hora registrada en la tarea, si no hay usa default según tipo
-      const h1 = tarea.hora || (tarea.tipo === 'prueba' ? '08:00' : '16:00');
-      const h2 = tarea.horaFin || (tarea.tipo === 'prueba' ? '10:00' : '18:00');
-      // Nombre del evento: limpio y legible
-      const nombreEv = tarea.nombre;
+
+      // Solo crear el evento de ENTREGA si no existe ya
+      const yaExisteEntrega = eventos.find(e =>
+        String(e.tareaId) === String(tarea.id) && e.esEntrega
+      );
+      if (yaExisteEntrega) return;
+
+      // Tipo visual según tipo de tarea
+      const tipoEv = tarea.tipo === 'prueba' ? 'prueba' :
+                     tarea.tipo === 'trabajo' ? 'trabajo' :
+                     tarea.tipo === 'control' ? 'prueba' : 'bloque';
+
+      // Hora de entrega/realización
+      const h1 = tarea.hora || (tarea.tipo === 'prueba' || tarea.tipo === 'control' ? '08:00' : '16:00');
+      const h2 = tarea.horaFin || (tarea.tipo === 'prueba' || tarea.tipo === 'control' ? '10:00' : '18:00');
+
+      // Prefijo según tipo para claridad en el calendario
+      const prefijo = tarea.tipo === 'prueba' ? '📝 Prueba: ' :
+                      tarea.tipo === 'control' ? '📝 Control: ' :
+                      tarea.tipo === 'trabajo' ? '📤 Entrega: ' : '📌 ';
+
       eventos.push({
         id: Date.now() + Math.random(),
         tareaId: tarea.id,
-        nombre: nombreEv,
+        nombre: prefijo + tarea.nombre,
         tipo: tipoEv,
         fecha: tarea.fecha,
         inicio: h1,
         fin: h2,
-        notas: tarea.ramo || tarea.notas || '',
-        desdeTareas: true
+        notas: tarea.ramo || '',
+        desdeTareas: true,
+        esEntrega: true  // ← diferencia clave
       });
       localStorage.setItem('martin_eventos', JSON.stringify(eventos));
-    } catch(e) { console.error('Error sincronizando calendario:', e); }
+    } catch(e) { console.error('Error sincronizando:', e); }
   }
 
   function guardarModal() {
