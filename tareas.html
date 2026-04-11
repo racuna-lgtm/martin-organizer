@@ -490,9 +490,9 @@
   // ── DATOS ──
   const STORAGE_KEY = 'martin_tareas';
 
-  function cargarTareas() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || datosEjemplo(); }
-    catch { return datosEjemplo(); }
+ function cargarTareas() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
   }
 
   function guardarTareas(lista) {
