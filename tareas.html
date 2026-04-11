@@ -820,9 +820,9 @@
     if(document.getElementById('m-hora')) document.getElementById('m-hora').value = '';
     if(document.getElementById('m-horafin')) document.getElementById('m-horafin').value = '';
     render();
-    // Para CUALQUIER tarea con fecha futura, preguntar cuándo la preparará
-    const hoy = hoyStr();
-    if(nueva.fecha && nueva.fecha > hoy) {
+    // Para CUALQUIER tarea con fecha (hoy o futura), preguntar cuándo la preparará
+    // Excepción: si ya viene con hora definida, ya sabe cuándo la hará
+    if(nueva.fecha && !nueva.hora) {
       setTimeout(() => abrirModalBloque(nueva), 400);
     }
   }
@@ -916,8 +916,9 @@
     sincronizarConCalendario(nueva);
 
     document.getElementById('transcriptText').textContent = `✅ Agregada: "${nueva.nombre}"`;
-    // Para cualquier tarea con fecha futura, preguntar cuándo la preparará
-    if(fecha && fecha > hoyStr()) {
+    // Para cualquier tarea con fecha, preguntar cuándo la preparará
+    // (solo si no viene con hora ya definida)
+    if(fecha && !nueva.hora) {
       setTimeout(() => abrirModalBloque(nueva), 3500);
     }
     document.getElementById('transcriptHint').textContent = `${tipo} de ${ramo} · ${dia}`;
