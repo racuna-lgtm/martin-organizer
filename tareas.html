@@ -1036,6 +1036,49 @@
     if (e.key === 'Escape') cerrarModalDirecto();
   });
 
+  // Migrar eventos de entrega faltantes — corre al cargar
+  function migrarEventosEntrega() {
+    const tareas = JSON.parse(localStorage.getItem('martin_tareas') || '[]');
+    const eventos = JSON.parse(localStorage.getItem('martin_eventos') || '[]');
+    let cambios = false;
+
+    tareas.filter(t => t.fecha && !t.done).forEach(t => {
+      // Verificar si ya tiene evento de entrega
+      const tieneEntrega = eventos.find(e =>
+        String(e.tareaId) === String(t.id) && e.esEntrega
+      );
+      if (!tieneEntrega) {
+        // Crear evento de entrega
+        const tipoEv = t.tipo === 'prueba' ? 'prueba' :
+                       t.tipo === 'trabajo' ? 'trabajo' :
+                       t.tipo === 'control' ? 'prueba' : 'bloque';
+        const h1 = t.hora || (t.tipo === 'prueba' || t.tipo === 'control' ? '08:00' : '16:00');
+        const h2 = t.horaFin || (t.tipo === 'prueba' || t.tipo === 'control' ? '10:00' : '18:00');
+        const prefijo = t.tipo === 'prueba' ? '📝 Prueba: ' :
+                        t.tipo === 'control' ? '📝 Control: ' :
+                        t.tipo === 'trabajo' ? '📤 Entrega: ' : '📌 ';
+        eventos.push({
+          id: 'entrega-' + t.id,
+          tareaId: t.id,
+          nombre: prefijo + t.nombre,
+          tipo: tipoEv,
+          fecha: t.fecha,
+          inicio: h1,
+          fin: h2,
+          notas: t.ramo || '',
+          desdeTareas: true,
+          esEntrega: true
+        });
+        cambios = true;
+      }
+    });
+
+    if (cambios) {
+      localStorage.setItem('martin_eventos', JSON.stringify(eventos));
+      console.log('✅ Eventos de entrega migrados');
+    }
+  }
+
   // Migrar tareas viejas con nombres largos al formato limpio
   function migrarNombres() {
     let cambios = false;
@@ -1185,6 +1228,7 @@
   function cerrarModalBloqueFinal(){document.getElementById('modalBloqueOverlay').classList.remove('visible');tareaParaBloque=null;bloqueSeleccionado=null;}
 
   // Init
+  migrarEventosEntrega(); // crear eventos de entrega faltantes
   migrarNombres();
   render();
   actualizarProgreso();
