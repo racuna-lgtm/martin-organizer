@@ -615,10 +615,11 @@ function render() {
     const sem  = semaforo(prom);
 
     sumaProm += prom;
-   if (r.notas.length > 0) {
+ if (r.notas.length > 0) {
   if (sem === 'verde') cntVerde++;
   else if (sem === 'amarillo') cntAmarillo++;
   else cntRojo++;
+}
 }
 
     const sug = sugerenciaIA(r.nombre, prom, tend, sem);
