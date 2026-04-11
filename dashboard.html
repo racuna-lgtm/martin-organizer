@@ -543,23 +543,26 @@ function renderTareas() {
 
 // ── SEMÁFORO RAMOS ──
 function renderRamos() {
-  const ramos = get('martin_notas', []);
+  // Leer frescos desde localStorage siempre
+  let ramos = [];
+  try { ramos = JSON.parse(localStorage.getItem('martin_notas')) || []; }
+  catch { ramos = []; }
+
   const barras = document.getElementById('ramosBarras');
+  const ramosConNotas = ramos.filter(r => r.notas && r.notas.length > 0);
 
-  // Verificar si hay al menos un ramo con notas
-  const tieneNotas = ramos.some(r => r.notas && r.notas.length > 0);
-
-  if (!ramos.length || !tieneNotas) {
+  if (!ramosConNotas.length) {
     barras.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:0.5rem 0;text-align:center">
-      <span style="cursor:pointer;color:var(--blue);font-weight:500" onclick="window.location='notas.html'">Agrega tus notas para ver el semáforo →</span>
+      <span style="cursor:pointer;color:var(--blue);font-weight:500" onclick="window.location='notas.html'">
+        ${ramos.length ? `${ramos.length} ramos listos — agrega tus notas →` : 'Agrega tus notas para ver el semáforo →'}
+      </span>
     </div>`;
-    document.getElementById('semSubtitle').textContent = ramos.length ? `${ramos.length} ramos configurados — sin notas aún` : 'Sin datos aún';
+    document.getElementById('semSubtitle').textContent = ramos.length
+      ? `${ramos.length} ramos configurados`
+      : 'Sin datos aún';
     ['cntVerde','cntAmarillo','cntRojo'].forEach(id=>document.getElementById(id).textContent='0');
     return;
   }
-
-  // Solo mostrar ramos que tienen notas
-  const ramosConNotas = ramos.filter(r => r.notas && r.notas.length > 0);
 
   const prom = ns => ns.length ? ns.reduce((s,n)=>s+n.val,0)/ns.length : 0;
   let verde=0,amarillo=0,rojo=0;
