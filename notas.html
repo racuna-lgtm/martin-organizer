@@ -376,7 +376,10 @@ function cargarRamos() {
   try { const s = JSON.parse(localStorage.getItem(NOTAS_KEY)); return s?.length ? s : ramosBase; }
   catch { return ramosBase; }
 }
-function guardarRamos(data) { localStorage.setItem(NOTAS_KEY, JSON.stringify(data)); }
+function guardarRamos(data) {
+  localStorage.setItem(NOTAS_KEY, JSON.stringify(data));
+  if (typeof SyncManager !== 'undefined') SyncManager.push().catch(()=>{});
+}
 
 let ramos = cargarRamos();
 let notasEscaneadas = []; // resultado del scan temporal
