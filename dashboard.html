@@ -263,26 +263,24 @@
   </div>
 </section>
 
-<!-- TEMPORADA -->
+<!-- RACHA SEMANAL -->
 <section>
-  <div class="section-title">Tu temporada</div>
-  <div class="temporada-card">
-    <div class="temp-header">
-      <h3 id="tempTitulo">Semana — de 40</h3>
-      <small id="tempSub"></small>
-    </div>
-    <div class="semanas-grid" id="semanasGrid"></div>
-    <div class="temp-stats">
-      <div class="temp-stat">
-        <div class="temp-stat-num" id="tempGanadas">—</div>
-        <div class="temp-stat-lbl">semanas ganadas</div>
+  <div class="section-title">Tu racha</div>
+  <div class="racha-card" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--text);letter-spacing:-2px;line-height:1" id="rachaNumDash">1</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px" id="rachaMsgDash">día seguido organizándote</div>
       </div>
-      <div class="temp-stat">
-        <div class="temp-stat-num" id="tempRacha">—</div>
-        <div class="temp-stat-lbl">de racha</div>
-      </div>
-      <div class="racha-fuego" id="tempFuego">🔥</div>
+      <div style="font-size:40px" id="rachaEmoji">💪</div>
     </div>
+    <!-- Días de la semana actual -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:0.75rem" id="rachaSemanaDias"></div>
+    <!-- Barra de progreso semanal -->
+    <div style="background:var(--border);border-radius:10px;height:6px;overflow:hidden;margin-bottom:6px">
+      <div id="rachaBarraSem" style="height:100%;border-radius:10px;background:var(--blue);transition:width 0.6s ease;width:0%"></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted)" id="rachaProgSem">0 de 5 días esta semana</div>
   </div>
 </section>
 
@@ -422,20 +420,41 @@ function renderCancha() {
     return 'noche';
   };
 
-  // Tareas de hoy
-  tareas.filter(t => !t.done && t.fecha === hoy).forEach(t => {
-    const zona = zonaDeHora(t.hora);
-    const clase = t.tipo === 'prueba' ? 'b-prueba' :
-                  t.tipo === 'trabajo' ? 'b-trabajo' :
-                  t.tipo === 'control' ? 'b-prueba' : 'b-estudio';
-    zonas[zona].push({ nombre: t.nombre, hora: t.hora || '', clase });
+  // Lógica de cancha:
+  // - Pruebas/trabajos/controles: aparecen el DÍA QUE VENCEN como recordatorio
+  // - Tareas de estudio: aparecen HOY si están pendientes (fecha <= hoy)
+  // - Solo si tienen hora definida se asignan a zona específica
+
+  tareas.filter(t => !t.done).forEach(t => {
+    if (!t.fecha) return;
+    const esEvaluacion = ['prueba','trabajo','control'].includes(t.tipo);
+    const esEstudio = !esEvaluacion; // tarea simple de estudio/repaso
+
+    // Evaluaciones: solo aparecen en la cancha el día que vencen
+    if (esEvaluacion && t.fecha !== hoy) return;
+
+    // Tareas de estudio: aparecen si vencen hoy o están atrasadas
+    if (esEstudio && t.fecha > hoy) return;
+
+    // Solo mostrar en cancha si tiene hora definida O es evaluación de hoy
+    if (!t.hora && !esEvaluacion) return;
+
+    const zona = t.hora ? zonaDeHora(t.hora) : 'tarde';
+    const clase = esEvaluacion ? 'b-prueba' : 'b-estudio';
+    const etiqueta = esEvaluacion
+      ? `${t.nombre} ⚠ hoy`
+      : t.nombre;
+    zonas[zona].push({ nombre: etiqueta, hora: t.hora || '', clase });
   });
 
-  // Eventos del calendario de hoy
-  eventos.filter(e => e.fecha === hoy && !e.desdeTareas).forEach(e => {
+  // Eventos del calendario de hoy (incluye bloques de preparación)
+  eventos.filter(e => e.fecha === hoy).forEach(e => {
+    // Evitar duplicar eventos que ya vienen de tareas directas
+    if (e.desdeTareas && !e.esBloquePreparacion) return;
     const zona = zonaDeHora(e.inicio);
     const clase = e.tipo === 'prueba' ? 'b-prueba' :
                   e.tipo === 'partido' ? 'b-partido' :
+                  e.tipo === 'bloque_estudio' ? 'b-estudio' :
                   e.tipo === 'personal' ? 'b-libre' : 'b-estudio';
     zonas[zona].push({ nombre: e.nombre, hora: e.inicio || '', clase });
   });
@@ -527,21 +546,27 @@ function renderRamos() {
   const ramos = get('martin_notas', []);
   const barras = document.getElementById('ramosBarras');
 
-  if (!ramos.length) {
+  // Verificar si hay al menos un ramo con notas
+  const tieneNotas = ramos.some(r => r.notas && r.notas.length > 0);
+
+  if (!ramos.length || !tieneNotas) {
     barras.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:0.5rem 0;text-align:center">
-      <span style="cursor:pointer;color:var(--blue)" onclick="window.location='notas.html'">Agrega tus notas para ver el semáforo →</span>
+      <span style="cursor:pointer;color:var(--blue);font-weight:500" onclick="window.location='notas.html'">Agrega tus notas para ver el semáforo →</span>
     </div>`;
-    document.getElementById('semSubtitle').textContent = 'Sin datos aún';
+    document.getElementById('semSubtitle').textContent = ramos.length ? `${ramos.length} ramos configurados — sin notas aún` : 'Sin datos aún';
     ['cntVerde','cntAmarillo','cntRojo'].forEach(id=>document.getElementById(id).textContent='0');
     return;
   }
+
+  // Solo mostrar ramos que tienen notas
+  const ramosConNotas = ramos.filter(r => r.notas && r.notas.length > 0);
 
   const prom = ns => ns.length ? ns.reduce((s,n)=>s+n.val,0)/ns.length : 0;
   let verde=0,amarillo=0,rojo=0;
   let sumaProms=0;
 
   // Ordenar por promedio ascendente (primero los en riesgo)
-  const ramosOrdenados = [...ramos].sort((a,b)=>prom(a.notas)-prom(b.notas));
+  const ramosOrdenados = [...ramosConNotas].sort((a,b)=>prom(a.notas)-prom(b.notas));
 
   barras.innerHTML = ramosOrdenados.slice(0,6).map(r => {
     const p = prom(r.notas);
@@ -561,48 +586,56 @@ function renderRamos() {
   document.getElementById('cntVerde').textContent = verde;
   document.getElementById('cntAmarillo').textContent = amarillo;
   document.getElementById('cntRojo').textContent = rojo;
-  const promGen = ramos.length ? sumaProms/Math.min(6,ramos.length) : 0;
-  document.getElementById('semSubtitle').textContent = ramos.length
-    ? `Promedio general: ${promGen.toFixed(1)}`
-    : 'Sin datos aún';
+  const promGen = ramosConNotas.length ? sumaProms/Math.min(6,ramosConNotas.length) : 0;
+  document.getElementById('semSubtitle').textContent = `Promedio general: ${promGen.toFixed(1)}`;
 }
 
-// ── TEMPORADA ──
-function renderTemporada() {
-  const SEMANAS_TOTAL = 40;
+// ── RACHA SEMANAL ──
+function renderRacha() {
   const racha = parseInt(localStorage.getItem('martin_racha')) || 1;
-  const historial = get('martin_temp_semanas', []);
+  document.getElementById('rachaNumDash').textContent = racha;
+  document.getElementById('rachaMsgDash').textContent =
+    racha === 1 ? 'día seguido organizándote' : `días seguidos organizándote`;
+  document.getElementById('rachaEmoji').textContent =
+    racha >= 7 ? '🏆' : racha >= 4 ? '🔥' : racha >= 2 ? '⚡' : '💪';
 
-  // Calcular semana actual del año
-  const ahora = new Date();
-  const inicioAno = new Date(ahora.getFullYear(), 0, 1);
-  const semanaActual = Math.ceil(((ahora - inicioAno) / 86400000 + inicioAno.getDay() + 1) / 7);
-  const semanaApp = Math.min(semanaActual, SEMANAS_TOTAL);
+  // Días de la semana actual — Lu Ma Mi Ju Vi Sa Do
+  const DIAS_CORTOS = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+  const hoy = new Date();
+  const diaActual = hoy.getDay(); // 0=domingo
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() - (diaActual === 0 ? 6 : diaActual - 1));
 
-  document.getElementById('tempTitulo').textContent = `Semana ${semanaApp} de ${SEMANAS_TOTAL}`;
-  document.getElementById('tempSub').textContent = `Temporada ${ahora.getFullYear()}`;
-
-  // Generar grid de semanas
-  const grid = document.getElementById('semanasGrid');
+  const historialDias = get('martin_dias_activos', []);
+  let diasActivosSemana = 0;
   let html = '';
-  let ganadas = 0;
 
-  for (let i = 1; i <= SEMANAS_TOTAL; i++) {
-    if (i < semanaApp) {
-      const gano = historial.includes(i) || (i > semanaApp - racha - 1 && i < semanaApp);
-      if (gano) ganadas++;
-      html += `<div class="semana-item ${gano?'s-ganada':'s-perdida'}" title="Semana ${i}">S${i}</div>`;
-    } else if (i === semanaApp) {
-      html += `<div class="semana-item s-hoy" title="Esta semana">S${i}</div>`;
-    } else {
-      html += `<div class="semana-item s-futura" title="Semana ${i}">S${i}</div>`;
-    }
+  for (let i = 0; i < 7; i++) {
+    const dia = new Date(lunes);
+    dia.setDate(lunes.getDate() + i);
+    const diaStr = `${dia.getFullYear()}-${String(dia.getMonth()+1).padStart(2,'0')}-${String(dia.getDate()).padStart(2,'0')}`;
+    const esHoy = diaStr === hoyStr();
+    const esActivo = historialDias.includes(diaStr);
+    const esFuturo = diaStr > hoyStr();
+    const esFinDeSemana = dia.getDay() === 0 || dia.getDay() === 6;
+    if (esActivo && !esFuturo && !esFinDeSemana) diasActivosSemana++;
+    const color = esHoy ? 'var(--blue)' :
+                  esActivo ? 'var(--green)' :
+                  esFuturo ? 'var(--border)' :
+                  esFinDeSemana ? 'var(--border)' : 'var(--red-soft)';
+    const textColor = esHoy || esActivo ? 'white' :
+                      esFuturo || esFinDeSemana ? 'var(--muted)' : 'var(--red-dark)';
+    html += `<div style="aspect-ratio:1;border-radius:8px;background:${color};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+      <span style="font-size:9px;font-weight:600;color:${textColor}">${DIAS_CORTOS[i]}</span>
+      <span style="font-size:10px;font-weight:700;color:${textColor}">${esActivo||esHoy?'✓':'·'}</span>
+    </div>`;
   }
 
-  grid.innerHTML = html;
-  document.getElementById('tempGanadas').textContent = ganadas;
-  document.getElementById('tempRacha').textContent = `${racha} sem.`;
-  document.getElementById('tempFuego').textContent = racha >= 4 ? '🔥' : racha >= 2 ? '⚡' : '💪';
+  document.getElementById('rachaSemanaDias').innerHTML = html;
+  const pctSem = Math.round((diasActivosSemana/5)*100);
+  document.getElementById('rachaBarraSem').style.width = pctSem+'%';
+  document.getElementById('rachaProgSem').textContent =
+    `${diasActivosSemana} de 5 días de semana completados`;
 }
 
 // ── ACTUALIZAR RACHA ──
@@ -615,6 +648,14 @@ function actualizarRacha() {
   if (ultima && ultima !== hoy) racha = ultima === ayerStr ? racha+1 : 1;
   localStorage.setItem('martin_racha', racha);
   localStorage.setItem('martin_ultima_visita', hoy);
+  // Registrar día activo para la barra semanal
+  const dias = get('martin_dias_activos', []);
+  if (!dias.includes(hoy)) {
+    dias.push(hoy);
+    // Mantener solo últimos 30 días
+    const recientes = dias.slice(-30);
+    localStorage.setItem('martin_dias_activos', JSON.stringify(recientes));
+  }
 }
 
 // ── POMODORO RÁPIDO ──
@@ -706,7 +747,7 @@ cargarPartido();
 renderCancha();
 renderTareas();
 renderRamos();
-renderTemporada();
+renderRacha();
 </script>
 </body>
 </html>
