@@ -1239,9 +1239,26 @@
 <script src="sync-manager.js"></script>
 <script>
   // Iniciar sync al cargar la página
-  if (typeof SyncManager !== 'undefined') {
-    SyncManager.init().catch(e => console.log('Sync offline:', e));
+async function iniciarApp() {
+    if (typeof SyncManager !== 'undefined') {
+      await SyncManager.pull().catch(() => {});
+    }
+    try {
+      const guardadas = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (guardadas && guardadas.length > 0) tareas = guardadas;
+      else tareas = [];
+    } catch { tareas = []; }
+    migrarEventosEntrega();
+    migrarNombres();
+    render();
+    actualizarProgreso();
+    if (typeof SyncManager !== 'undefined') {
+      setInterval(() => SyncManager.push(), 3 * 60 * 1000);
+      window.addEventListener('beforeunload', () => SyncManager.push());
+      setTimeout(() => SyncManager.push(), 5000);
+    }
   }
+  iniciarApp();
 </script>
 </body>
 </html>
