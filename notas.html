@@ -752,7 +752,14 @@ function guardarNota() {
   mostrarNotif(`✅ Nota ${val.toFixed(1)} guardada en ${ramo}`);
 }
 
-function mostrarNotif(msg) {
+function eliminarNota(ramoIdx, notaIdx) {
+  if (!confirm('¿Eliminar esta nota?')) return;
+  ramos[ramoIdx].notas.splice(notaIdx, 1);
+  guardarRamos(ramos);
+  render();
+  mostrarNotif('🗑 Nota eliminada');
+}
+  function mostrarNotif(msg) {
   const n = document.getElementById('notif');
   n.textContent = msg;
   n.classList.add('visible');
