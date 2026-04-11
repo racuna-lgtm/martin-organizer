@@ -355,29 +355,26 @@ document.getElementById('saludoHora').textContent =
 
 // ── PARTIDO U ──
 function cargarPartido() {
-  // Guardado en localStorage por el cron de Vercel (Fase 3)
-  // Por ahora: buscar en eventos del calendario si hay partido de la U
-  const eventos = get('martin_eventos');
-  const hoy = hoyStr();
-  const manana = (() => {
-    const m = new Date(); m.setDate(m.getDate()+1);
-    return `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}-${String(m.getDate()).padStart(2,'0')}`;
-  })();
-
-  // Buscar en martin_partido (lo pone Vercel en Fase 3)
-  const partidoGuardado = get('martin_partido_u', null);
-  if (partidoGuardado && (partidoGuardado.fecha === hoy || partidoGuardado.fecha === manana)) {
-    mostrarPartido(partidoGuardado);
-    return;
+  // Mostrar SIEMPRE el próximo partido guardado
+  const partido = get('martin_partido_u', null);
+  if (partido && partido.fecha) {
+    // Solo mostrar si la fecha no pasó
+    if (partido.fecha >= hoyStr()) {
+      mostrarPartido(partido);
+      return;
+    }
   }
 
-  // Fallback: buscar en eventos del calendario
-  const partidoEv = eventos.find(e =>
-    (e.fecha === hoy || e.fecha === manana) &&
-    (e.nombre.toLowerCase().includes('u. de chile') ||
-     e.nombre.toLowerCase().includes('universidad de chile') ||
-     e.tipo === 'partido')
-  );
+  // Buscar en eventos del calendario
+  const eventos = get('martin_eventos');
+  const hoy = hoyStr();
+  const partidoEv = eventos
+    .filter(e => e.fecha >= hoy &&
+      (e.nombre.toLowerCase().includes('u. de chile') ||
+       e.nombre.toLowerCase().includes('universidad de chile') ||
+       e.tipo === 'partido'))
+    .sort((a,b) => a.fecha.localeCompare(b.fecha))[0];
+
   if (partidoEv) {
     mostrarPartido({
       rival: partidoEv.nombre,
@@ -391,11 +388,22 @@ function cargarPartido() {
 function mostrarPartido(p) {
   const hoy = hoyStr();
   const banner = document.getElementById('partidoBanner');
-  document.getElementById('pLabel').textContent = p.fecha === hoy ? 'Hoy juega la U 🔵' : 'Mañana juega la U';
-  document.getElementById('pNombre').textContent = p.rival || 'Universidad de Chile';
-  document.getElementById('pHora').textContent = `${p.estadio ? p.estadio + ' · ' : ''}${p.hora || ''}`;
-  document.getElementById('pTag').textContent = p.fecha === hoy ? 'HOY' : 'MAÑANA';
-  document.getElementById('pTag').className = p.fecha === hoy ? 'partido-tag' : 'partido-tag pronto';
+
+  // Calcular días restantes
+  const hoyDate = new Date(hoy+'T12:00:00');
+  const partDate = new Date(p.fecha+'T12:00:00');
+  const dias = Math.round((partDate - hoyDate) / 86400000);
+
+  let label, tag, tagClass;
+  if (dias === 0) { label = 'Hoy juega la U 🔵'; tag = 'HOY'; tagClass = 'partido-tag'; }
+  else if (dias === 1) { label = 'Mañana juega la U'; tag = 'MAÑANA'; tagClass = 'partido-tag pronto'; }
+  else { label = `Próximo partido de la U`; tag = `${dias} días`; tagClass = 'partido-tag pronto'; }
+
+  document.getElementById('pLabel').textContent = label;
+  document.getElementById('pNombre').textContent = p.rival ? `U. de Chile vs ${p.rival}` : 'Universidad de Chile';
+  document.getElementById('pHora').textContent = [p.estadio, p.hora].filter(Boolean).join(' · ');
+  document.getElementById('pTag').textContent = tag;
+  document.getElementById('pTag').className = tagClass;
   banner.classList.add('visible');
 }
 
