@@ -1,9 +1,9 @@
 """
-napsis_sync.py
-Entra a login.napsis.com como apoderada, selecciona a Martín Vicente,
-extrae las notas y las sincroniza en Supabase (tablas notas_ramos y notas).
+napsis_sync.py v2
+Entra a Napsis evadiendo Cloudflare con modo stealth + URLs alternativas.
+Sincroniza notas de Martín Vicente en Supabase.
 """
-import os, re, json, time, requests
+import os, re, time, json, requests
 from datetime import datetime
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
@@ -13,6 +13,12 @@ NAPSIS_PASS  = os.environ.get("NAPSIS_PASS",  "")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://cayvrsqyjljqnrtsagwq.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 
+NAPSIS_URLS = [
+    "https://padres-apoderados.napsis.cl/index/login",
+    "https://cuentas.napsis.cl/",
+    "https://login.napsis.com/",
+]
+
 SB_HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -20,9 +26,33 @@ SB_HEADERS = {
     "Prefer": "resolution=ignore-duplicates",
 }
 
+STEALTH_JS = """
+() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+    Object.defineProperty(navigator, 'languages', { get: () => ['es-CL', 'es', 'en-US', 'en'] });
+    const originalQuery = window.navigator.permissions.query;
+    window.navigator.permissions.query = (parameters) => (
+        parameters.name === 'notifications' ?
+        Promise.resolve({ state: Notification.permission }) :
+        originalQuery(parameters)
+    );
+    window.chrome = { runtime: {} };
+}
+"""
+
 def shot(page, name):
-    page.screenshot(path=f"step_{name}.png", full_page=True)
-    print(f"  📸 {name}")
+    try:
+        page.screenshot(path=f"step_{name}.png", full_page=True)
+        print(f"  📸 {name}")
+    except Exception:
+        pass
+
+def wait_load(page, timeout=10000):
+    try:
+        page.wait_for_load_state("load", timeout=timeout)
+    except PWTimeout:
+        pass
 
 def fill_field(page, *selectors, value, timeout=5000):
     for sel in selectors:
@@ -48,88 +78,104 @@ def click_text(page, *texts, timeout=5000):
             continue
     return False
 
-def wait_load(page, timeout=10000):
-    try:
-        page.wait_for_load_state("load", timeout=timeout)
-    except PWTimeout:
-        pass
+def tiene_cloudflare(page):
+    content = page.content().lower()
+    return ("verificación de seguridad" in content or
+            "verifique que es un ser humano" in content or
+            "checking your browser" in content)
 
-def login_napsis(page):
-    print("\n🔐 Paso 1: Login en Napsis...")
-    page.goto(NAPSIS_URL, wait_until="domcontentloaded", timeout=30000)
+def intentar_login(page, url):
+    print(f"\n  🌐 Intentando: {url}")
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=20000)
+    except Exception as e:
+        print(f"  ⚠️ Error: {e}")
+        return False
     time.sleep(3)
-    shot(page, "01_inicio")
-    fill_field(page, "input[type='email']", "input[name='email']",
-               "input[name='usuario']", "input[name='rut']",
-               "input[placeholder*='correo' i]", "#email", "#usuario",
-               value=NAPSIS_USER)
-    shot(page, "02_email")
-    fill_field(page, "input[type='password']", "input[name='password']",
-               "input[name='clave']", "#password", "#clave",
-               value=NAPSIS_PASS)
-    shot(page, "03_password")
-    clicked = False
+    shot(page, f"try_{url.split('/')[2].replace('.', '_')}")
+    if tiene_cloudflare(page):
+        print(f"  🚫 Cloudflare en {url}")
+        return False
+    email_ok = fill_field(
+        page,
+        "input[type='email']", "input[name='email']",
+        "input[name='usuario']", "input[name='rut']",
+        "input[placeholder*='correo' i]", "input[placeholder*='email' i]",
+        "#email", "#usuario", "#rut",
+        value=NAPSIS_USER, timeout=5000
+    )
+    if not email_ok:
+        print(f"  ⚠️ Sin campo email en {url}")
+        return False
+    fill_field(
+        page,
+        "input[type='password']", "input[name='password']",
+        "input[name='clave']", "#password", "#clave",
+        value=NAPSIS_PASS, timeout=5000
+    )
+    shot(page, "formulario_llenado")
     for sel in ["button[type='submit']", "button:has-text('Ingresar')",
                 "button:has-text('Iniciar sesión')", "button:has-text('Entrar')",
-                "input[type='submit']"]:
+                "input[type='submit']", ".btn-primary"]:
         try:
             page.locator(sel).first.wait_for(state="visible", timeout=3000)
             page.locator(sel).first.click()
-            clicked = True
             print(f"  ✅ Botón login ({sel})")
             break
         except PWTimeout:
             continue
-    if not clicked:
+    else:
         page.keyboard.press("Enter")
     wait_load(page, 15000)
     time.sleep(4)
-    shot(page, "04_post_login")
-    print("  ✅ Login completado")
+    shot(page, "post_login")
+    if tiene_cloudflare(page):
+        return False
+    print(f"  ✅ Login exitoso en {url}")
+    return True
 
 def seleccionar_rol(page):
-    print("\n👤 Paso 2: Seleccionando rol...")
-    shot(page, "05_roles")
+    print("\n👤 Seleccionando rol...")
+    shot(page, "roles")
     if click_text(page, "Padres y apoderados", "Apoderado", "Padre", timeout=5000):
         wait_load(page)
         time.sleep(3)
-        shot(page, "06_post_rol")
+        shot(page, "post_rol")
     else:
         print("  ℹ️  Sin pantalla de roles")
 
 def seleccionar_alumno(page):
-    print("\n👦 Paso 3: Seleccionando Martín Vicente...")
-    shot(page, "07_alumnos")
+    print("\n👦 Seleccionando Martín Vicente...")
+    shot(page, "alumnos")
     if click_text(page, "Martín Vicente", "Martin Vicente", timeout=5000):
         wait_load(page)
         time.sleep(3)
-        shot(page, "08_post_alumno")
+        shot(page, "post_alumno")
     else:
         print("  ℹ️  Sin selector de alumno")
 
 def ir_a_notas(page):
-    print("\n📊 Paso 4: Buscando notas...")
-    shot(page, "09_home")
+    print("\n📊 Navegando a notas...")
+    shot(page, "home")
     if click_text(page, "Notas", "Calificaciones", "Rendimiento", timeout=5000):
         wait_load(page)
         time.sleep(2)
-        shot(page, "10_notas")
-        click_text(page, "Ver notas", "Historial de notas", timeout=3000)
+        shot(page, "notas_menu")
+        click_text(page, "Ver notas", "Historial", timeout=3000)
         wait_load(page, 8000)
         time.sleep(1)
-        shot(page, "11_notas2")
-        return
-    base = "/".join(page.url.split("/")[:3])
-    for path in ["/calificaciones", "/notas", "/rendimiento"]:
-        try:
-            page.goto(base + path, wait_until="domcontentloaded", timeout=10000)
-            time.sleep(2)
-            if page.query_selector("table"):
-                shot(page, "10_notas_url")
-                return
-        except Exception:
-            continue
-    shot(page, "10_notas_fallback")
+    else:
+        base = "/".join(page.url.split("/")[:3])
+        for path in ["/calificaciones", "/notas", "/rendimiento", "/apoderado/calificaciones"]:
+            try:
+                page.goto(base + path, wait_until="domcontentloaded", timeout=10000)
+                time.sleep(2)
+                if page.query_selector("table"):
+                    print(f"  ✅ Notas en {path}")
+                    break
+            except Exception:
+                continue
+    shot(page, "pagina_notas")
 
 def parse_nota(text):
     text = text.strip().replace(",", ".")
@@ -162,8 +208,7 @@ def extraer_notas_ramos(page):
                     }
                     return null;
                 }""")
-                if prev:
-                    ramo = prev.strip()
+                if prev: ramo = prev.strip()
         except Exception:
             pass
         headers = [th.inner_text().strip().lower()
@@ -217,29 +262,56 @@ def upsert(tabla, datos):
     if resp.ok:
         print(f"  ✅ {len(datos)} registros → '{tabla}'")
     else:
-        print(f"  ❌ Error '{tabla}': {resp.status_code} — {resp.text[:200]}")
+        print(f"  ❌ Error '{tabla}': {resp.status_code} — {resp.text[:300]}")
 
 def main():
-    print("=" * 50)
+    print("=" * 55)
     print(f"  🚀 Sync Napsis → Supabase | {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print("=" * 50)
+    print("=" * 55)
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True,
-                                    args=["--no-sandbox", "--disable-dev-shm-usage"])
-        ctx  = browser.new_context(viewport={"width": 1280, "height": 900}, locale="es-CL")
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-blink-features=AutomationControlled",
+                "--disable-infobars",
+                "--window-size=1280,900",
+            ]
+        )
+        ctx = browser.new_context(
+            viewport={"width": 1280, "height": 900},
+            locale="es-CL",
+            timezone_id="America/Santiago",
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/122.0.0.0 Safari/537.36"
+            ),
+            extra_http_headers={
+                "Accept-Language": "es-CL,es;q=0.9,en-US;q=0.8",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            }
+        )
+        ctx.add_init_script(STEALTH_JS)
         page = ctx.new_page()
         try:
-            login_napsis(page)
+            login_ok = False
+            for url in NAPSIS_URLS:
+                if intentar_login(page, url):
+                    login_ok = True
+                    break
+            if not login_ok:
+                raise Exception("Cloudflare bloqueó todas las URLs. Ver Opción B con cookies.")
             seleccionar_rol(page)
             seleccionar_alumno(page)
             ir_a_notas(page)
-            shot(page, "12_pagina_final")
+            shot(page, "final")
             notas_ramos = extraer_notas_ramos(page)
             promedios   = extraer_promedios(page)
-            print(f"\n📌 Notas individuales: {len(notas_ramos)}")
+            print(f"\n📌 Notas: {len(notas_ramos)} | Promedios: {len(promedios)}")
             for n in notas_ramos[:5]:
                 print(f"   {n['ramo'][:35]:37s} {n['val']} ({n['tipo']})")
-            print(f"📌 Promedios: {len(promedios)}")
             upsert("notas_ramos", notas_ramos)
             upsert("notas", promedios)
         except Exception as e:
